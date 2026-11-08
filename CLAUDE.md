@@ -63,6 +63,12 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - `components/home/`: `CarruselBanners`, `CarruselProductos` + `ItemCarrusel`, `GridCategorias`, `Vitrina`/`VitrinaCategoria`, `Beneficios`, `InvitacionDistribuidor`.
 - Banners de ejemplo: fondos SVG sin texto en `public/banners/`; el título y botón se dibujan encima.
 
+## Catálogo y detalle (Paso 7)
+- `lib/listado.ts`: `leerFiltros(searchParams)` + `listarProductos(contexto, filtros, tarifa)` → productos, total, página, facetas (marcas, subcategorías, rango de precio). Lo usan /categoria/[slug], /marca/[slug], /nuevos y /buscar.
+- Filtros en la URL: `marca` (slugs separados por coma), `sub`, `min`/`max` (precio CON IVA según tarifa), `stock=1`, `orden` (relevancia|precio-asc|precio-desc|nuevos), `page` (24 por página; si no existe se muestra la última).
+- `components/listado/`: `Listado` (página completa), `FiltrosLateral`/`FiltrosMovil`, `Ordenar`, `Migas`, `conParams()`.
+- `/producto/[slug]`: solo PUBLICADO; `Galeria`, `AccionesProducto` (cantidad ≤ stock, Agregar / Comprar ahora), desglose con IVA, WhatsApp con nombre y código, pestañas y relacionados.
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.
