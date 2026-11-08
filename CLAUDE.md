@@ -49,6 +49,13 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - `lib/roles.ts`: `panelPorRol`, `rutaPermitida`, `destinoTrasLogin` (solo rutas internas como callbackUrl).
 - Páginas en `app/(auth)`; acciones en `app/(auth)/actions.ts`; validaciones Zod en `lib/validaciones/`.
 
+## Layout de la tienda (Paso 5)
+- `app/(tienda)/layout.tsx` arma: `BarraSuperior` → header sticky (`Header` + `MenuCategorias`) → contenido → `Footer` → `WhatsAppFlotante` (todo en `components/tienda/`).
+- Datos: `lib/config-tienda.ts` (contacto/redes desde Setting), `lib/catalogo.ts` (`getMenuCategorias`, caché con tag "categorias"), `lib/formato.ts` (`formatoUSD`).
+- Buscador con sugerencias → `GET /api/buscar?q=` (precio según tarifa del usuario, sin caché).
+- Carrito: `lib/carrito-store.ts` (zustand + localStorage, solo ids y cantidades; precios siempre del servidor).
+- Iconos: categorías con lucide (`IconoCategoria`), redes con `simple-icons` (`IconoMarca`).
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.

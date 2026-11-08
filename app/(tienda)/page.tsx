@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 // Página temporal: se reemplaza por la home real en el Paso 6.
 export default function Home() {
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center gap-8 px-4 text-center">
+    <main className="flex min-h-[60vh] flex-col py-12 items-center justify-center gap-8 px-4 text-center">
       <Image
         src="/logo-italcompu.webp"
         alt="ITALCOMPU - Vendemos soluciones"

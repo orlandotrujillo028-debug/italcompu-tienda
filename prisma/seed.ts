@@ -249,6 +249,9 @@ async function main() {
       { clave: "descuento_distribuidor", valor: "10" }, // % sobre el precio público
       { clave: "whatsapp", valor: "593990000000" },
       { clave: "email_contacto", valor: "ventas@italcompu.test" },
+      { clave: "telefono", valor: "02 000 0000" },
+      { clave: "direccion_matriz", valor: "Av. Principal N1-23 y Secundaria, Quito" },
+      { clave: "horario", valor: "Lun a Vie 9:00–18:30 · Sáb 9:00–13:00" },
       { clave: "facebook", valor: "https://facebook.com/" },
       { clave: "instagram", valor: "https://instagram.com/" },
       { clave: "tiktok", valor: "https://tiktok.com/" },
