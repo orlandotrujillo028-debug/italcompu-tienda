@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Banknote, CreditCard, HandCoins, Loader2, Lock, MapPin, Plus, Store, Truck } from "lucide-react";
+import { Banknote, CreditCard, HandCoins, Loader2, MapPin, Plus, Store, Truck } from "lucide-react";
+import { IconoMarca } from "@/components/tienda/iconos";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Resumen } from "@/components/carrito/resumen";
@@ -58,7 +59,7 @@ export function Checkout({ direcciones, nombreUsuario, tienda }: { direcciones: 
   if (creado) {
     return (
       <div className="flex items-center justify-center gap-2 rounded-xl border bg-card py-20 font-medium text-marca-navy">
-        <Loader2 className="size-5 animate-spin text-marca-azul" /> Pedido #{creado} creado. Abriendo el resumen…
+        <Loader2 className="size-5 animate-spin text-marca-azul" /> Pedido #{creado} creado. Abriendo WhatsApp y el resumen…
       </div>
     );
   }
@@ -88,14 +89,24 @@ export function Checkout({ direcciones, nombreUsuario, tienda }: { direcciones: 
     setError(undefined);
     if (!retiro && !direccionId) return setError("Elige o agrega una dirección de entrega.");
     if (!metodoPago) return setError("Elige cómo vas a pagar.");
+    // Abrimos la pestaña de WhatsApp YA (en el mismo clic), porque los navegadores bloquean
+    // ventanas que se abren después de esperar al servidor. Luego le ponemos la dirección.
+    const ventana = window.open("about:blank", "_blank");
     startTransition(async () => {
       const r = await crearPedido({ items, metodoEnvio, direccionId: retiro ? undefined : direccionId, metodoPago, notas });
       if ("numero" in r) {
         setCreado(r.numero);
         vaciar();
-        toast.success(`¡Pedido #${r.numero} creado!`);
+        if (r.whatsapp && ventana) {
+          ventana.location.href = r.whatsapp;
+          toast.success(`¡Pedido #${r.numero} creado! Envía el mensaje en WhatsApp para confirmarlo.`);
+        } else {
+          ventana?.close();
+          toast.success(`¡Pedido #${r.numero} creado!`);
+        }
         router.push(`/pedido/${r.numero}/confirmacion`);
       } else {
+        ventana?.close();
         setError(r.error);
         if (r.avisos?.length) router.push("/carrito");
       }
@@ -160,7 +171,7 @@ export function Checkout({ direcciones, nombreUsuario, tienda }: { direcciones: 
           <div className="grid gap-3">
             <Opcion nombre="pago" valor="TARJETA" actual={metodoPago} alElegir={(v) => { setMetodoPago(v as MetodoPago); setError(undefined); }}>
               <span className="flex items-center gap-2 font-semibold text-marca-navy"><CreditCard className="size-4 text-marca-azul" /> Tarjeta de crédito o débito</span>
-              <span className="block text-xs text-marca-gris">Pago en línea seguro. (En pruebas el pago se simula; la pasarela real llega en el Paso 12.)</span>
+              <span className="block text-xs text-marca-gris">Te enviamos un link de pago seguro por WhatsApp.</span>
             </Opcion>
             <Opcion nombre="pago" valor="TRANSFERENCIA" actual={metodoPago} alElegir={(v) => { setMetodoPago(v as MetodoPago); setError(undefined); }}>
               <span className="flex items-center gap-2 font-semibold text-marca-navy"><Banknote className="size-4 text-marca-azul" /> Transferencia o depósito</span>
@@ -212,8 +223,8 @@ export function Checkout({ direcciones, nombreUsuario, tienda }: { direcciones: 
         <Resumen c={c} retiro={retiro}>
           {error && <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
           <Button size="lg" className="h-12 w-full text-base" onClick={confirmar} disabled={enviando}>
-            {enviando ? <Loader2 className="animate-spin" /> : <Lock />}
-            Confirmar pedido · {formatoUSD(c.total)}
+            {enviando ? <Loader2 className="animate-spin" /> : <IconoMarca marca="whatsapp" className="size-5" />}
+            Enviar pedido por WhatsApp · {formatoUSD(c.total)}
           </Button>
           <p className="text-center text-xs text-marca-gris">
             Al confirmar aceptas los{" "}

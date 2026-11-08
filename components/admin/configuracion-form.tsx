@@ -67,7 +67,15 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
       <section className={seccion}>
         <h2 className="font-bold text-marca-navy">Contacto</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Campo id="whatsapp" label="WhatsApp (formato internacional)" placeholder="593991234567" error={e.whatsapp?.message} {...register("whatsapp")} />
+          <Campo id="whatsapp" label="WhatsApp de atención (botón flotante)" placeholder="593991234567" error={e.whatsapp?.message} {...register("whatsapp")} />
+          <Campo
+            id="whatsapp_pedidos"
+            label="WhatsApp que recibe los PEDIDOS"
+            placeholder="Vacío = el mismo de atención"
+            ayuda="Al confirmar una compra, el pedido se envía a este número."
+            error={e.whatsapp_pedidos?.message}
+            {...register("whatsapp_pedidos")}
+          />
           <Campo id="telefono" label="Teléfono fijo" error={e.telefono?.message} {...register("telefono")} />
           <Campo id="email_contacto" label="Correo de contacto" type="email" error={e.email_contacto?.message} {...register("email_contacto")} />
           <Campo id="horario" label="Horario de atención" error={e.horario?.message} {...register("horario")} />

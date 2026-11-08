@@ -11,7 +11,7 @@ Guía de pasos: `../GUIA_PROMPTS_ECOMMERCE.md`. Avanzar **un paso a la vez**.
 - **NO es marketplace**: todo lo vende ITALCOMPU. Los VENDEDORES son el personal de la tienda.
 - **Distribuidores**: un CLIENTE con local del mismo giro solicita ser distribuidor (RUC, nombre del local…) → el ADMIN aprueba → ve todos los precios con el % general `descuento_distribuidor` (Setting, por defecto 10 %). Mientras está PENDIENTE ve precios normales.
 - Precios SIEMPRE calculados en el servidor con `lib/precios.ts` (`getTarifa()` + `calcularPrecio()`); el pedido guarda el precio cobrado y el % aplicado.
-- Envíos en Ecuador (Servientrega u otro). Pagos: tarjeta (Placetopay/PayPhone), transferencia, contra entrega.
+- Envíos en Ecuador (Servientrega u otro). **Sin pasarela de pago**: el pedido se confirma por WhatsApp (ver "Pedidos por WhatsApp"). Formas de pago: transferencia, contra entrega y tarjeta mediante link de pago que la tienda envía por WhatsApp.
 - WhatsApp flotante, redes sociales, "¿Quiénes somos?", enlace "¿Tienes un local? Sé distribuidor" (`/registro-distribuidor`).
 
 ## Roles y paneles
@@ -74,7 +74,7 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Carrito: `/carrito` + `useCotizacion()` (pide la cotización al servidor y corrige el store con `sincronizar`).
 - `/checkout` (requiere sesión): envío (DOMICILIO | RETIRO), dirección (guardadas o nueva con `guardarDireccion`), pago (TARJETA | TRANSFERENCIA | CONTRA_ENTREGA), notas.
 - `crearPedido` (`app/(tienda)/checkout/actions.ts`): recotiza; si hay avisos no crea nada; descuenta stock con `updateMany ... stock >= cantidad` dentro de una transacción; guarda copia de dirección y precios; `revalidateTag("productos")`.
-- `/pedido/[numero]/confirmacion`: solo el dueño (o personal). Transferencia muestra `datos_bancarios` (Setting). Tarjeta: botón "Simular pago aprobado" SOLO en desarrollo (pasarela real en Paso 12).
+- `/pedido/[numero]/confirmacion`: solo el dueño (o personal). Botón para (re)enviar el pedido por WhatsApp; transferencia muestra `datos_bancarios` (Setting).
 - Ojo: un pedido que falla dentro de la transacción igual consume un número de la secuencia (Postgres no los reutiliza).
 
 ## Panel del cliente (Paso 9)
@@ -101,6 +101,14 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - `/admin/configuracion` (`lib/validaciones/configuracion.ts`) y `/admin/actividad` (textos en `ACCIONES`).
 - Componentes reutilizables: `BotonAccion` (con confirmación) y `AccionConTexto` (motivo/comprobante, `tono`).
 - Prisma: `transactionOptions` con timeout 20 s en `lib/prisma.ts` (Neon es lento para transacciones largas).
+
+## Pedidos por WhatsApp (Paso 12, decisión del dueño: sin pasarela de pago)
+- Botón final del checkout: "Enviar pedido por WhatsApp". `crearPedido` guarda el pedido (reserva stock) y devuelve `whatsapp` = enlace wa.me armado en el SERVIDOR con `enlaceWhatsappPedido()` (`lib/whatsapp-pedido.ts`): productos, totales, entrega, pago, notas y link al detalle.
+- La pestaña de WhatsApp se abre en el mismo clic (`window.open` antes de esperar al servidor) para que el navegador no la bloquee; la tienda pasa a la confirmación.
+- Número que recibe pedidos y comprobantes: Setting `whatsapp_pedidos` (Admin → Configuración); si está vacío, se usa `whatsapp` (atención).
+- Botón `EnviarPorWhatsapp` en la confirmación y en `/cuenta/pedidos/[numero]` mientras el pedido esté pendiente de pago.
+- Pagos: el admin confirma manualmente (comprobante) en el detalle del pedido. Tarjeta = link de pago enviado por WhatsApp.
+- Pendiente: envío por provincia y emails transaccionales (Resend) si el dueño los quiere.
 
 ## Reglas de trabajo
 - Toda la interfaz en español.

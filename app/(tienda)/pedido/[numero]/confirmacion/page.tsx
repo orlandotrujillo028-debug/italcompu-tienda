@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetallePedido, EstadoBadge } from "@/components/pedidos/detalle-pedido";
+import { EnviarPorWhatsapp } from "@/components/pedidos/enviar-whatsapp";
 import { InstruccionesPago } from "@/components/pedidos/instrucciones-pago";
 import { requireUser } from "@/lib/auth-guards";
 import { fechaEC } from "@/lib/formato";
@@ -37,7 +38,8 @@ export default async function ConfirmacionPage({ params }: Props) {
         <EstadoBadge estado={pedido.estado} className="px-3 py-1 text-sm" />
       </header>
 
-      <InstruccionesPago pedido={pedido} esDueno={pedido.userId === usuario.id} />
+      {pedido.userId === usuario.id && pedido.estado === "PENDIENTE_PAGO" && <EnviarPorWhatsapp numero={pedido.numero} />}
+      <InstruccionesPago pedido={pedido} />
       <DetallePedido pedido={pedido} />
 
       <div className="flex flex-col justify-center gap-3 sm:flex-row">

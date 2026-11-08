@@ -1,24 +1,22 @@
 import { Banknote, Clock, CreditCard, HandCoins } from "lucide-react";
-import { SimularPago } from "@/components/checkout/simular-pago";
 import { IconoMarca } from "@/components/tienda/iconos";
-import { getConfigTienda } from "@/lib/config-tienda";
 import { formatoUSD } from "@/lib/formato";
 import { getConfigEnvio } from "@/lib/pedido";
 import type { DireccionPedido, EstadoPedido, MetodoPago } from "@/lib/pedidos-ui";
+import { numeroWhatsappPedidos } from "@/lib/whatsapp-pedido";
 
 type Props = {
   pedido: { numero: number; estado: EstadoPedido; metodoPago: MetodoPago; total: { toString(): string }; direccionEnvio: unknown };
-  /** El botón de pago simulado solo lo ve el dueño del pedido. */
-  esDueno: boolean;
 };
 
 /** Qué tiene que hacer el cliente para pagar, según la forma de pago elegida. */
-export async function InstruccionesPago({ pedido, esDueno }: Props) {
-  const [envio, tienda] = await Promise.all([getConfigEnvio(), getConfigTienda()]);
+export async function InstruccionesPago({ pedido }: Props) {
+  // El comprobante va al MISMO número que recibe los pedidos.
+  const [envio, telefono] = await Promise.all([getConfigEnvio(), numeroWhatsappPedidos()]);
   const retiro = (pedido.direccionEnvio as DireccionPedido).tipo === "RETIRO";
   const pendiente = pedido.estado === "PENDIENTE_PAGO";
-  const whatsapp = tienda.whatsapp
-    ? `https://wa.me/${tienda.whatsapp}?text=${encodeURIComponent(`Hola ITALCOMPU, envío el comprobante del pedido #${pedido.numero}.`)}`
+  const whatsapp = telefono
+    ? `https://wa.me/${telefono}?text=${encodeURIComponent(`Hola ITALCOMPU, envío el comprobante del pedido #${pedido.numero}.`)}`
     : null;
 
   return (
@@ -53,8 +51,7 @@ export async function InstruccionesPago({ pedido, esDueno }: Props) {
           <h2 className="flex items-center gap-2 font-bold text-marca-navy">
             <CreditCard className="size-5 text-marca-azul" /> Pago con tarjeta
           </h2>
-          <p className="text-sm">{pendiente ? "Tu pago está pendiente de confirmación." : "Tu pago fue aprobado."}</p>
-          {pendiente && esDueno && process.env.NODE_ENV !== "production" && <SimularPago numero={pedido.numero} />}
+          <p className="text-sm">{pendiente ? "Te enviaremos por WhatsApp un link de pago seguro para pagar con tarjeta." : "Tu pago fue aprobado."}</p>
         </>
       )}
       {pedido.metodoPago === "CONTRA_ENTREGA" && (

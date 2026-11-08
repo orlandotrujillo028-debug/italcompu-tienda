@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DetallePedido, EstadoBadge, LineaTiempo } from "@/components/pedidos/detalle-pedido";
+import { EnviarPorWhatsapp } from "@/components/pedidos/enviar-whatsapp";
 import { InstruccionesPago } from "@/components/pedidos/instrucciones-pago";
 import { requireUser } from "@/lib/auth-guards";
 import { METODOS_PAGO_TEXTO } from "@/lib/pedidos-ui";
@@ -47,7 +48,12 @@ export default async function PedidoClientePage({ params }: Props) {
         <LineaTiempo estado={pedido.estado} contraEntrega={pedido.metodoPago === "CONTRA_ENTREGA"} />
       </section>
 
-      {pedido.estado === "PENDIENTE_PAGO" && <InstruccionesPago pedido={pedido} esDueno />}
+      {pedido.estado === "PENDIENTE_PAGO" && (
+        <>
+          <EnviarPorWhatsapp numero={pedido.numero} titulo="¿Aún no nos enviaste tu pedido por WhatsApp?" />
+          <InstruccionesPago pedido={pedido} />
+        </>
+      )}
       <DetallePedido pedido={pedido} />
     </div>
   );

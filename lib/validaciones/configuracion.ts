@@ -15,6 +15,11 @@ export const configuracionSchema = z.object({
   costo_envio: dinero,
   envio_gratis_desde: dinero,
   whatsapp: z.string().trim().regex(/^593\d{9}$/, "Formato 593 + 9 dígitos, ej. 593991234567"),
+  // Número que RECIBE los pedidos desde el checkout. Vacío = se usa el WhatsApp general.
+  whatsapp_pedidos: z
+    .string()
+    .trim()
+    .regex(/^(593\d{9})?$/, "Formato 593 + 9 dígitos, o déjalo vacío para usar el WhatsApp general"),
   telefono: z.string().trim().max(30),
   email_contacto: z.string().trim().pipe(z.email("Correo no válido")),
   direccion_matriz: z.string().trim().max(160),

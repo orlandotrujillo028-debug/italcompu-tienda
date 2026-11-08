@@ -8,6 +8,7 @@ import { cotizar, type Aviso } from "@/lib/pedido";
 import { getTarifa } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
 import { checkoutSchema, direccionSchema } from "@/lib/validaciones/pedido";
+import { enlaceWhatsappPedido } from "@/lib/whatsapp-pedido";
 
 // ---------- Direcciones ----------
 
@@ -34,7 +35,8 @@ export async function guardarDireccion(datos: unknown): Promise<{ id: string } |
 
 // ---------- Crear pedido ----------
 
-type Resultado = { numero: number } | { error: string; avisos?: Aviso[] };
+/** numero: pedido creado · whatsapp: enlace wa.me con el pedido (null si la tienda no tiene WhatsApp). */
+type Resultado = { numero: number; whatsapp: string | null } | { error: string; avisos?: Aviso[] };
 
 class SinStock extends Error {}
 
@@ -112,7 +114,8 @@ export async function crearPedido(datos: unknown): Promise<Resultado> {
     });
 
     revalidateTag("productos"); // el stock cambió: refresca vitrinas
-    return { numero: pedido.numero };
+    // El pedido ya está guardado: armamos el mensaje con los datos reales y lo devolvemos.
+    return { numero: pedido.numero, whatsapp: await enlaceWhatsappPedido(pedido.numero) };
   } catch (e) {
     if (e instanceof SinStock) return { error: `Alguien acaba de comprar las últimas unidades de “${e.message}”. Revisa tu carrito.` };
     console.error("crearPedido", e);
