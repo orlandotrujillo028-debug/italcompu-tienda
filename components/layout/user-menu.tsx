@@ -37,12 +37,12 @@ export async function UserMenu({ tono = "claro" }: { tono?: "claro" | "oscuro" }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className={colorTexto}>
+        <Button variant="ghost" className={colorTexto} aria-label={`Menú de ${primerNombre}`}>
           <span className="flex size-6 items-center justify-center rounded-full bg-marca-cyan text-xs font-bold text-white">
             {primerNombre.charAt(0).toUpperCase()}
           </span>
-          <span className="max-w-32 truncate">{primerNombre}</span>
-          <ChevronDown className="size-3.5 opacity-70" />
+          <span className="hidden max-w-32 truncate sm:inline">{primerNombre}</span>
+          <ChevronDown className="hidden size-3.5 opacity-70 sm:block" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

@@ -1,38 +1,63 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Sparkles, Star } from "lucide-react";
+import { CarruselBanners } from "@/components/home/carrusel-banners";
+import { Beneficios, InvitacionDistribuidor } from "@/components/home/franjas";
+import { GridCategorias } from "@/components/home/grid-categorias";
+import { Vitrina, VitrinaCategoria } from "@/components/home/vitrina";
+import { getUsuarioActual } from "@/lib/auth-guards";
+import { getBannersActivos, getIdsDeseos, getMenuCategorias, getVitrinasHome } from "@/lib/catalogo";
+import { getConfigPrecios, getTarifa } from "@/lib/precios";
 
-// Página temporal: se reemplaza por la home real en el Paso 6.
-export default function Home() {
+// Página de inicio de la tienda.
+export default async function Home() {
+  const [banners, categorias, vitrinas, tarifa, deseos, usuario, config] = await Promise.all([
+    getBannersActivos(),
+    getMenuCategorias(),
+    getVitrinasHome(),
+    getTarifa(),
+    getIdsDeseos(),
+    getUsuarioActual(),
+    getConfigPrecios(),
+  ]);
+  const comun = { tarifa, deseos };
+  // La invitación a distribuidor solo tiene sentido para visitantes y clientes que aún no lo son.
+  const invitar = !tarifa.esDistribuidor && (!usuario || usuario.rol === "CLIENTE");
+
+  // La invitación se intercala después de la segunda vitrina de categoría.
+  const [primeras, resto] = [vitrinas.secciones.slice(0, 2), vitrinas.secciones.slice(2)];
+
   return (
-    <main className="flex min-h-[60vh] flex-col py-12 items-center justify-center gap-8 px-4 text-center">
-      <Image
-        src="/logo-italcompu.webp"
-        alt="ITALCOMPU - Vendemos soluciones"
-        width={320}
-        height={287}
-        priority
+    <main className="mx-auto max-w-7xl space-y-10 px-4 py-5 sm:space-y-12 sm:py-6">
+      <h1 className="sr-only">ITALCOMPU: tienda de tecnología en Ecuador</h1>
+
+      <div className="space-y-4">
+        <CarruselBanners banners={banners} />
+        <Beneficios />
+      </div>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold text-marca-navy sm:text-2xl">Compra por categoría</h2>
+        <GridCategorias categorias={categorias.map(({ id, nombre, slug, icono }) => ({ id, nombre, slug, icono }))} />
+      </section>
+
+      <Vitrina titulo="Destacados" icono={<Star className="size-6 fill-marca-cyan text-marca-cyan" />} productos={vitrinas.destacados} {...comun} />
+
+      {primeras.map((s) => (
+        <VitrinaCategoria key={s.id} categoria={s} {...comun} />
+      ))}
+
+      {invitar && <InvitacionDistribuidor descuento={config.descuentoDistribuidor} />}
+
+      {resto.map((s) => (
+        <VitrinaCategoria key={s.id} categoria={s} {...comun} />
+      ))}
+
+      <Vitrina
+        titulo="Nuevos productos"
+        icono={<Sparkles className="size-6 text-marca-cyan" />}
+        href="/nuevos"
+        productos={vitrinas.nuevos}
+        {...comun}
       />
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-marca-navy sm:text-4xl">
-          Tienda en construcción
-        </h1>
-        <p className="text-marca-gris">
-          Muy pronto: laptops, computadores, componentes y mucho más.
-        </p>
-      </div>
-      <div className="flex gap-3">
-        <Button size="lg">Ver productos</Button>
-        <Button asChild size="lg" variant="secondary">
-          <Link href="/registro-distribuidor">¿Tienes un local? Sé distribuidor</Link>
-        </Button>
-      </div>
-      <div className="flex gap-2" aria-hidden>
-        <span className="h-2 w-10 rounded-full bg-marca-navy" />
-        <span className="h-2 w-10 rounded-full bg-marca-azul" />
-        <span className="h-2 w-10 rounded-full bg-marca-cyan" />
-        <span className="h-2 w-10 rounded-full bg-marca-gris" />
-      </div>
     </main>
   );
 }

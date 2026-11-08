@@ -56,6 +56,13 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Carrito: `lib/carrito-store.ts` (zustand + localStorage, solo ids y cantidades; precios siempre del servidor).
 - Iconos: categorías con lucide (`IconoCategoria`), redes con `simple-icons` (`IconoMarca`).
 
+## Home y tarjetas (Paso 6)
+- `app/(tienda)/page.tsx`: banners → beneficios → grilla de categorías → Destacados → vitrinas por categoría (con invitación a distribuidor intercalada) → Nuevos.
+- `lib/catalogo.ts`: `getVitrinasHome`, `getBannersActivos` (caché por tags "productos"/"categorias"/"banners"), `getIdsDeseos()`, tipo `ProductoTarjeta`.
+- `components/producto/`: `ProductCard` (reutilizable), `Precio` (público o distribuidor tachado), `BotonComprar` (carrito + aviso), `BotonDeseo` (acción `alternarDeseo` en `app/(tienda)/actions.ts`).
+- `components/home/`: `CarruselBanners`, `CarruselProductos` + `ItemCarrusel`, `GridCategorias`, `Vitrina`/`VitrinaCategoria`, `Beneficios`, `InvitacionDistribuidor`.
+- Banners de ejemplo: fondos SVG sin texto en `public/banners/`; el título y botón se dibujan encima.
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.

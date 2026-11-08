@@ -236,7 +236,7 @@ async function main() {
       data: {
         ...b,
         orden,
-        imagen: `https://placehold.co/1600x500/0b2f8a/ffffff/png?text=${encodeURIComponent(b.titulo)}`,
+        imagen: `/banners/banner-${orden + 1}.svg`, // fondo sin texto: el título se dibuja encima
       },
     });
   }
