@@ -1,45 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Search, Store, Truck } from "lucide-react";
-import type { Prisma } from "@prisma/client";
+import { ChevronLeft, ChevronRight, Download, Search, Store, Truck } from "lucide-react";
 import { EstadoBadge } from "@/components/pedidos/detalle-pedido";
 import { requireRole } from "@/lib/auth-guards";
 import { fechaEC, formatoUSD } from "@/lib/formato";
-import { METODOS_PAGO_TEXTO, type DireccionPedido, type EstadoPedido } from "@/lib/pedidos-ui";
+import { FILTROS_PEDIDO, leerFiltroPedidos, type FiltroPedido } from "@/lib/filtro-pedidos";
+import { METODOS_PAGO_TEXTO, type DireccionPedido } from "@/lib/pedidos-ui";
 import { prisma } from "@/lib/prisma";
-import { FILTRO_POR_ATENDER } from "@/lib/ventas";
 
 export const metadata: Metadata = { title: "Pedidos" };
 
 const POR_PAGINA = 20;
-const FILTROS = {
-  atender: "Por atender",
-  todos: "Todos",
-  PENDIENTE_PAGO: "Pendiente de pago",
-  PAGADO: "Pagados",
-  PREPARANDO: "Preparando",
-  ENVIADO: "Enviados",
-  ENTREGADO: "Entregados",
-  CANCELADO: "Cancelados",
-} as const;
-type Filtro = keyof typeof FILTROS;
-
-type Props = { searchParams: Promise<{ estado?: string; q?: string; page?: string }> };
+type Props = { searchParams: Promise<{ estado?: string; q?: string; desde?: string; hasta?: string; page?: string }> };
 
 export default async function PedidosVendedorPage({ searchParams }: Props) {
-  await requireRole("VENDEDOR", "ADMIN");
+  const usuario = await requireRole("VENDEDOR", "ADMIN");
   const sp = await searchParams;
-  const filtro: Filtro = sp.estado && sp.estado in FILTROS ? (sp.estado as Filtro) : "atender";
-  const q = (sp.q ?? "").trim().replace(/^#/, "").slice(0, 60);
-
-  const porEstado: Prisma.OrderWhereInput =
-    filtro === "atender" ? FILTRO_POR_ATENDER : filtro === "todos" ? {} : { estado: filtro as EstadoPedido };
-  const porTexto: Prisma.OrderWhereInput = q
-    ? /^\d+$/.test(q)
-      ? { numero: Number(q) }
-      : { user: { OR: [{ name: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }] } }
-    : {};
-  const where: Prisma.OrderWhereInput = { AND: [porEstado, porTexto] };
+  const { filtro, q, desde, hasta, where } = leerFiltroPedidos(sp);
 
   const total = await prisma.order.count({ where });
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
@@ -64,35 +41,63 @@ export default async function PedidosVendedorPage({ searchParams }: Props) {
     },
   });
 
-  const url = (cambios: Record<string, string | undefined>) => {
+  const parametros = (cambios: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    const base = { estado: filtro !== "atender" ? filtro : undefined, q: q || undefined, ...cambios };
+    const base = { estado: filtro !== "atender" ? filtro : undefined, q: q || undefined, desde, hasta, ...cambios };
     for (const [k, v] of Object.entries(base)) if (v) p.set(k, v);
+    return p;
+  };
+  const url = (cambios: Record<string, string | undefined>) => {
+    const p = parametros(cambios);
     return `/vendedor/pedidos${p.size ? `?${p}` : ""}`;
   };
+  const csv = `/admin/pedidos/exportar?${parametros({ page: undefined })}`;
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-marca-navy">Pedidos</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-marca-navy">Pedidos</h1>
+        {usuario.rol === "ADMIN" && (
+          <a href={csv} className="inline-flex h-9 items-center gap-1.5 rounded-lg border bg-white px-3 text-sm font-medium text-marca-navy hover:bg-accent">
+            <Download className="size-4" /> Exportar CSV
+          </a>
+        )}
+      </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3">
         <nav aria-label="Filtrar pedidos" className="-mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:px-0">
-          {(Object.keys(FILTROS) as Filtro[]).map((f) => (
+          {(Object.keys(FILTROS_PEDIDO) as FiltroPedido[]).map((f) => (
             <Link
               key={f}
               href={url({ estado: f === "atender" ? undefined : f, page: undefined })}
               aria-current={filtro === f ? "page" : undefined}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap ${filtro === f ? "border-marca-azul bg-marca-azul text-white" : "bg-white text-marca-navy hover:bg-accent"}`}
             >
-              {FILTROS[f]}
+              {FILTROS_PEDIDO[f]}
             </Link>
           ))}
         </nav>
-        <form className="relative lg:w-64" action="/vendedor/pedidos">
+        <form className="flex flex-wrap items-end gap-2" action="/vendedor/pedidos">
           {filtro !== "atender" && <input type="hidden" name="estado" value={filtro} />}
-          <label htmlFor="buscar-pedido" className="sr-only">Buscar por número, nombre o correo</label>
-          <input id="buscar-pedido" name="q" defaultValue={q} placeholder="N.º de pedido, nombre o correo" className="h-9 w-full rounded-lg border border-input bg-white pr-9 pl-3 text-sm outline-none focus:border-ring" />
-          <Search className="absolute top-2.5 right-3 size-4 text-marca-gris" />
+          <div className="relative min-w-0 flex-1 sm:max-w-64">
+            <label htmlFor="buscar-pedido" className="sr-only">Buscar por número, nombre o correo</label>
+            <input id="buscar-pedido" name="q" defaultValue={q} placeholder="N.º de pedido, nombre o correo" className="h-9 w-full rounded-lg border border-input bg-white pr-9 pl-3 text-sm outline-none focus:border-ring" />
+            <Search className="absolute top-2.5 right-3 size-4 text-marca-gris" />
+          </div>
+          <label className="text-xs text-marca-gris">
+            Desde
+            <input type="date" name="desde" defaultValue={desde} className="mt-0.5 block h-9 rounded-lg border border-input bg-white px-2 text-sm text-foreground" />
+          </label>
+          <label className="text-xs text-marca-gris">
+            Hasta
+            <input type="date" name="hasta" defaultValue={hasta} className="mt-0.5 block h-9 rounded-lg border border-input bg-white px-2 text-sm text-foreground" />
+          </label>
+          <button type="submit" className="h-9 rounded-lg bg-marca-azul px-3 text-sm font-medium text-white hover:bg-marca-navy">Filtrar</button>
+          {(desde || hasta || q) && (
+            <Link href={url({ q: undefined, desde: undefined, hasta: undefined, page: undefined })} className="flex h-9 items-center text-sm text-destructive hover:underline">
+              Limpiar
+            </Link>
+          )}
         </form>
       </div>
 

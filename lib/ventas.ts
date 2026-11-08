@@ -15,14 +15,14 @@ const OFFSET_EC_MS = -5 * 60 * 60 * 1000;
 const diaEC = (d: Date) => new Date(d.getTime() + OFFSET_EC_MS).toISOString().slice(0, 10);
 
 /** Inicio (en UTC) del día de Ecuador que está `dias` días atrás. */
-function inicioDiaEC(diasAtras: number) {
+export function inicioDiaEC(diasAtras: number) {
   const hoy = diaEC(new Date());
   const inicio = new Date(`${hoy}T00:00:00.000Z`).getTime() - OFFSET_EC_MS; // 00:00 de Ecuador en UTC
   return new Date(inicio - diasAtras * 86_400_000);
 }
 
 /** Inicio del mes actual en Ecuador. */
-function inicioMesEC() {
+export function inicioMesEC() {
   const [a, m] = diaEC(new Date()).split("-");
   return new Date(new Date(`${a}-${m}-01T00:00:00.000Z`).getTime() - OFFSET_EC_MS);
 }

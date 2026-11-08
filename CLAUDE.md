@@ -90,6 +90,18 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Pedidos: `siguientesEstados()` en `lib/flujo-pedido.ts` (contra entrega/pagado → preparando → enviado con guía | retiro → entregado). `cambiarEstadoPedido` usa updateMany con el estado anterior para no pisar cambios simultáneos. Confirmar transferencias y cancelar: ADMIN (Paso 11).
 - `lib/actividad.ts` → `registrarActividad()` en cada cambio (tabla ActivityLog).
 
+## Panel del admin (Paso 11)
+- `/admin`: dashboard (ventas del mes público vs distribuidores, pedidos de hoy, clientes nuevos, pendientes, gráfico, más vendidos). El menú muestra contadores de pendientes.
+- `/admin/productos`: aprobar / rechazar con motivo (acciones en `app/admin/productos/actions.ts`), destacado/nuevo, despublicar. Edición del producto: se reutiliza `/vendedor/productos/[id]`.
+- `/admin/distribuidores`: aprobar, rechazar (motivo), suspender, reactivar; muestra compras de cada uno.
+- `/admin/usuarios`: rol, activar/desactivar (nunca a uno mismo), crear personal (VENDEDOR).
+- `/admin/catalogo`: categorías/subcategorías (orden, icono, visible; el slug NO cambia al renombrar) y marcas; solo se borra lo que no tiene productos.
+- `/admin/banners`: CRUD con subida a Cloudinary o fondos incluidos; enlaces solo `/ruta` o `https://`.
+- Pedidos: se reutiliza `/vendedor/pedidos` (+ filtro de fechas, `lib/filtro-pedidos.ts`). Solo ADMIN: confirmar pago con comprobante, cancelar con motivo devolviendo stock (`app/admin/pedidos/actions.ts`) y exportar CSV (`/admin/pedidos/exportar`, separador `;`, BOM UTF-8, protegido contra fórmulas).
+- `/admin/configuracion` (`lib/validaciones/configuracion.ts`) y `/admin/actividad` (textos en `ACCIONES`).
+- Componentes reutilizables: `BotonAccion` (con confirmación) y `AccionConTexto` (motivo/comprobante, `tono`).
+- Prisma: `transactionOptions` con timeout 20 s en `lib/prisma.ts` (Neon es lento para transacciones largas).
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.

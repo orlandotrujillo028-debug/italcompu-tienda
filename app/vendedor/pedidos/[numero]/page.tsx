@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgePercent, Mail, Phone, UserRound } from "lucide-react";
+import { BadgePercent, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { AccionesPedidoAdmin } from "@/components/admin/acciones-pedido-admin";
 import { DetallePedido, EstadoBadge, LineaTiempo } from "@/components/pedidos/detalle-pedido";
 import { GestionPedido } from "@/components/vendedor/gestion-pedido";
 import { requireRole } from "@/lib/auth-guards";
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PedidoVendedorPage({ params }: Props) {
-  await requireRole("VENDEDOR", "ADMIN");
+  const usuario = await requireRole("VENDEDOR", "ADMIN");
   const numero = Number((await params).numero);
   if (!Number.isInteger(numero) || numero < 1) notFound();
 
@@ -55,6 +56,12 @@ export default async function PedidoVendedorPage({ params }: Props) {
         <section className="space-y-4 rounded-xl border bg-card p-5">
           <h2 className="font-bold text-marca-navy">Atender pedido</h2>
           <GestionPedido numero={pedido.numero} estado={pedido.estado} siguientes={siguientesEstados(pedido)} guiaActual={pedido.guiaEnvio} />
+          {usuario.rol === "ADMIN" && (
+            <div className="space-y-2 border-t pt-4">
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-marca-navy"><ShieldCheck className="size-4 text-marca-azul" /> Administración</h3>
+              <AccionesPedidoAdmin numero={pedido.numero} estado={pedido.estado} metodoPago={pedido.metodoPago} />
+            </div>
+          )}
           <div className="border-t pt-4">
             <LineaTiempo estado={pedido.estado} contraEntrega={pedido.metodoPago === "CONTRA_ENTREGA"} />
           </div>
