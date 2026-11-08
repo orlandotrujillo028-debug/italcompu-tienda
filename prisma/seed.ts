@@ -1,6 +1,6 @@
 // Datos de ejemplo para desarrollo. Ejecutar: npx prisma db seed
 // ¡Borra y vuelve a crear todo! No usar en producción.
-import { PrismaClient, Rol, EstadoVendedor, EstadoProducto } from "@prisma/client";
+import { PrismaClient, Rol, EstadoDistribuidor, EstadoProducto } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -101,10 +101,9 @@ async function main() {
   await prisma.category.deleteMany();
   await prisma.brand.deleteMany();
   await prisma.address.deleteMany();
-  await prisma.vendorProfile.deleteMany();
+  await prisma.distributorProfile.deleteMany();
   await prisma.user.deleteMany();
   await prisma.banner.deleteMany();
-  await prisma.distributorRequest.deleteMany();
   await prisma.setting.deleteMany();
 
   const password = await bcrypt.hash(PASSWORD_PRUEBA, 10);
@@ -114,32 +113,39 @@ async function main() {
     data: { name: "Administrador ITALCOMPU", email: "admin@italcompu.test", password, rol: Rol.ADMIN },
   });
 
-  const vendedores = [];
-  for (const [i, tienda] of ["ITALCOMPU Matriz", "TecnoAliado Quito"].entries()) {
-    const user = await prisma.user.create({
+  // Personal de ITALCOMPU (rol VENDEDOR): gestiona productos y pedidos
+  await prisma.user.create({
+    data: { name: "Vendedor ITALCOMPU", email: "vendedor1@italcompu.test", password, rol: Rol.VENDEDOR },
+  });
+
+  // Distribuidores: clientes con un local del mismo giro (uno aprobado y uno en revisión)
+  const distribuidores = [
+    { n: 1, local: "CompuRed Ambato", ruc: "1890012345001", provincia: "Tungurahua", ciudad: "Ambato", estado: EstadoDistribuidor.APROBADO },
+    { n: 2, local: "TecnoService Cuenca", ruc: "0190012345001", provincia: "Azuay", ciudad: "Cuenca", estado: EstadoDistribuidor.PENDIENTE },
+  ];
+  for (const d of distribuidores) {
+    await prisma.user.create({
       data: {
-        name: `Vendedor ${i + 1}`,
-        email: `vendedor${i + 1}@italcompu.test`,
+        name: `Distribuidor ${d.n}`,
+        email: `distribuidor${d.n}@italcompu.test`,
         password,
-        rol: Rol.VENDEDOR,
-        vendorProfile: {
-          create: { nombreTienda: tienda, slug: slugify(tienda), estado: EstadoVendedor.APROBADO },
+        telefono: "0980000000",
+        distribuidor: {
+          create: {
+            razonSocial: `${d.local} S.A.`,
+            nombreLocal: d.local,
+            ruc: d.ruc,
+            tipoNegocio: "Tienda de computación",
+            provincia: d.provincia,
+            ciudad: d.ciudad,
+            telefono: "0980000000",
+            estado: d.estado,
+            aprobadoEn: d.estado === EstadoDistribuidor.APROBADO ? new Date() : null,
+          },
         },
       },
-      include: { vendorProfile: true },
     });
-    vendedores.push(user.vendorProfile!);
   }
-  // Un vendedor en revisión, para probar la pantalla de "cuenta en revisión"
-  await prisma.user.create({
-    data: {
-      name: "Vendedor Pendiente",
-      email: "vendedor3@italcompu.test",
-      password,
-      rol: Rol.VENDEDOR,
-      vendorProfile: { create: { nombreTienda: "Nueva Tienda", slug: "nueva-tienda" } },
-    },
-  });
 
   for (const i of [1, 2]) {
     await prisma.user.create({
@@ -200,7 +206,6 @@ async function main() {
         nuevo: i % 7 === 0,
         categoryId: subcategorias.get(`${cat}/${sub}`)!,
         brandId: marcas.get(marca),
-        vendorId: vendedores[i % 2].id,
         images: {
           create: [{ url: `https://placehold.co/600x600/f4f5f7/0a6db3/png?text=${texto}`, orden: 0 }],
         },
@@ -208,7 +213,7 @@ async function main() {
     });
   }
 
-  // Productos esperando aprobación del admin
+  // Productos cargados por el personal, esperando aprobación del admin
   for (const [i, nombre] of ["Mouse gamer Logitech G502 X", "Parlante Xiaomi Sound Pocket"].entries()) {
     await prisma.product.create({
       data: {
@@ -220,7 +225,6 @@ async function main() {
         estado: EstadoProducto.PENDIENTE,
         categoryId: subcategorias.get(i === 0 ? "Periféricos/Mouse" : "Audio/Parlantes")!,
         brandId: marcas.get(i === 0 ? "Logitech" : "Xiaomi"),
-        vendorId: vendedores[1].id,
         images: { create: [{ url: "https://placehold.co/600x600/f4f5f7/0a6db3/png?text=Pendiente" }] },
       },
     });
@@ -242,6 +246,7 @@ async function main() {
       { clave: "iva", valor: "15" },
       { clave: "costo_envio", valor: "5" },
       { clave: "envio_gratis_desde", valor: "300" },
+      { clave: "descuento_distribuidor", valor: "10" }, // % sobre el precio público
       { clave: "whatsapp", valor: "593990000000" },
       { clave: "email_contacto", valor: "ventas@italcompu.test" },
       { clave: "facebook", valor: "https://facebook.com/" },

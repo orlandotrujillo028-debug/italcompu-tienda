@@ -35,9 +35,9 @@ export default async function LoginPage({ searchParams }: Props) {
             </Link>
           </p>
           <p>
-            ¿Quieres vender con nosotros?{" "}
-            <Link href="/registro-vendedor" className="font-medium text-marca-azul hover:underline">
-              Registra tu tienda
+            ¿Tienes un local de tecnología?{" "}
+            <Link href="/registro-distribuidor" className="font-medium text-marca-azul hover:underline">
+              Precios de distribuidor
             </Link>
           </p>
         </div>

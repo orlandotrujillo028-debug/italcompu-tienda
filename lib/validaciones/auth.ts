@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PROVINCIAS_ECUADOR, TIPOS_NEGOCIO } from "@/lib/ecuador";
 
 // Reglas de validación compartidas por los formularios (navegador) y el servidor.
 
@@ -18,12 +19,8 @@ const password = z
 
 const nombre = z.string().trim().min(3, "Ingresa tu nombre completo").max(80, "Nombre demasiado largo");
 
-const telefono = z
-  .string()
-  .trim()
-  .regex(/^(\+?593|0)\d{8,9}$/, "Ej.: 0991234567")
-  .or(z.literal(""))
-  .optional();
+const celular = z.string().trim().regex(/^(\+?593|0)\d{8,9}$/, "Ej.: 0991234567");
+const telefonoOpcional = celular.or(z.literal("")).optional();
 
 export const loginSchema = z.object({
   email,
@@ -37,30 +34,32 @@ const clavesIguales = {
 };
 
 export const registroClienteSchema = z
-  .object({ nombre, email, telefono, password, confirmar })
+  .object({ nombre, email, telefono: telefonoOpcional, password, confirmar })
   .refine(clavesIguales.check, clavesIguales.opciones);
 
-export const registroVendedorSchema = z
-  .object({
-    nombre,
-    email,
-    telefono: z.string().trim().regex(/^(\+?593|0)\d{8,9}$/, "Ej.: 0991234567"),
-    nombreTienda: z.string().trim().min(3, "Mínimo 3 caracteres").max(60, "Máximo 60 caracteres"),
-    ruc: z
-      .string()
-      .trim()
-      .regex(/^\d{10}001$/, "El RUC tiene 13 dígitos y termina en 001")
-      .or(z.literal(""))
-      .optional(),
-    descripcion: z.string().trim().max(500, "Máximo 500 caracteres").optional(),
-    password,
-    confirmar,
-  })
+// ---------- Distribuidores ----------
+
+/** Datos del local que pide precios de distribuidor. */
+export const datosNegocioSchema = z.object({
+  nombreLocal: z.string().trim().min(3, "Mínimo 3 caracteres").max(80, "Máximo 80 caracteres"),
+  razonSocial: z.string().trim().min(3, "Mínimo 3 caracteres").max(120, "Máximo 120 caracteres"),
+  ruc: z.string().trim().regex(/^\d{10}001$/, "El RUC tiene 13 dígitos y termina en 001"),
+  tipoNegocio: z.enum(TIPOS_NEGOCIO, "Elige el tipo de negocio"),
+  provincia: z.enum(PROVINCIAS_ECUADOR, "Elige la provincia"),
+  ciudad: z.string().trim().min(2, "Ingresa la ciudad").max(60, "Máximo 60 caracteres"),
+  direccion: z.string().trim().max(160, "Máximo 160 caracteres").optional(),
+  telefonoLocal: celular,
+});
+
+/** Registro nuevo: cuenta + datos del local. */
+export const registroDistribuidorSchema = z
+  .object({ nombre, email, password, confirmar, ...datosNegocioSchema.shape })
   .refine(clavesIguales.check, clavesIguales.opciones);
 
 export const recuperarSchema = z.object({ email });
 
 export type LoginInput = z.input<typeof loginSchema>;
 export type RegistroClienteInput = z.input<typeof registroClienteSchema>;
-export type RegistroVendedorInput = z.input<typeof registroVendedorSchema>;
+export type DatosNegocioInput = z.input<typeof datosNegocioSchema>;
+export type RegistroDistribuidorInput = z.input<typeof registroDistribuidorSchema>;
 export type RecuperarInput = z.input<typeof recuperarSchema>;

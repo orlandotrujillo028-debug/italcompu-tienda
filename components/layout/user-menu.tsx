@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cerrarSesion } from "@/app/(auth)/actions";
-import { getUsuarioActual } from "@/lib/auth-guards";
+import { esDistribuidorAprobado, getUsuarioActual } from "@/lib/auth-guards";
 import { nombreRol, panelPorRol } from "@/lib/roles";
 
 /**
@@ -49,7 +49,9 @@ export async function UserMenu({ tono = "claro" }: { tono?: "claro" | "oscuro" }
         <DropdownMenuLabel className="font-normal">
           <p className="truncate font-medium text-foreground">{usuario.name ?? "Mi cuenta"}</p>
           <p className="truncate text-xs text-marca-gris">{usuario.email}</p>
-          <p className="mt-1 text-xs font-medium text-marca-azul">{nombreRol[usuario.rol]}</p>
+          <p className="mt-1 text-xs font-medium text-marca-azul">
+            {esDistribuidorAprobado(usuario) ? "Distribuidor · precios especiales" : nombreRol[usuario.rol]}
+          </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

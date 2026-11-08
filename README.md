@@ -1,6 +1,6 @@
 # ITALCOMPU — Tienda en línea
 
-Ecommerce de tecnología con tres roles: **Admin**, **Vendedor** y **Cliente**.
+Ecommerce de tecnología con tres roles: **Admin**, **Vendedor** (personal de la tienda) y **Cliente**. Los clientes con un local del mismo giro pueden solicitar ser **distribuidores** y, una vez aprobados, ven precios más económicos.
 Contexto completo del proyecto en [CLAUDE.md](CLAUDE.md).
 
 ## Puesta en marcha
@@ -28,11 +28,11 @@ Todos usan la contraseña **`Italcompu2026!`** (definida en `prisma/seed.ts`).
 | Rol | Email | Notas |
 |---|---|---|
 | Admin | admin@italcompu.test | Acceso a `/admin` |
-| Vendedor | vendedor1@italcompu.test | Tienda "ITALCOMPU Matriz" (aprobado) |
-| Vendedor | vendedor2@italcompu.test | Tienda "TecnoAliado Quito" (aprobado, 2 productos pendientes) |
-| Vendedor | vendedor3@italcompu.test | Cuenta en revisión (PENDIENTE) |
-| Cliente | cliente1@italcompu.test | Quito |
-| Cliente | cliente2@italcompu.test | Guayaquil |
+| Vendedor (personal) | vendedor1@italcompu.test | Acceso a `/vendedor` |
+| Cliente | cliente1@italcompu.test | Quito, precios normales |
+| Cliente | cliente2@italcompu.test | Guayaquil, precios normales |
+| Cliente distribuidor | distribuidor1@italcompu.test | "CompuRed Ambato", **APROBADO** → ve precios con descuento |
+| Cliente distribuidor | distribuidor2@italcompu.test | "TecnoService Cuenca", solicitud **PENDIENTE** → precios normales |
 
 Nunca uses estos usuarios ni esta contraseña en producción.
 
@@ -40,5 +40,5 @@ Nunca uses estos usuarios ni esta contraseña en producción.
 
 - 16 categorías con 60 subcategorías, 16 marcas
 - 40 productos publicados (códigos `ITC-1000` a `ITC-1039`) + 2 pendientes de aprobación
-- 3 banners, configuración inicial (IVA 15 %, envío $5, envío gratis desde $300)
+- 3 banners, configuración inicial (IVA 15 %, envío $5, envío gratis desde $300, descuento distribuidor 10 %)
 - Los pedidos se numeran desde el #1001

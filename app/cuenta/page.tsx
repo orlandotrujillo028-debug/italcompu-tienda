@@ -1,13 +1,16 @@
 import { Bienvenida } from "@/components/paneles/panel-shell";
+import { EstadoDistribuidor } from "@/components/distribuidor/estado-distribuidor";
 import { requireUser } from "@/lib/auth-guards";
+import { getConfigPrecios } from "@/lib/precios";
 import { prisma } from "@/lib/prisma";
 
 export default async function CuentaInicio() {
   const usuario = await requireUser();
-  const [pedidos, direcciones, deseos] = await Promise.all([
+  const [pedidos, direcciones, deseos, config] = await Promise.all([
     prisma.order.count({ where: { userId: usuario.id } }),
     prisma.address.count({ where: { userId: usuario.id } }),
     prisma.wishlistItem.count({ where: { userId: usuario.id } }),
+    getConfigPrecios(),
   ]);
 
   const tarjetas = [
@@ -19,6 +22,9 @@ export default async function CuentaInicio() {
   return (
     <div className="space-y-6">
       <Bienvenida nombre={usuario.name ?? "cliente"} texto="Aquí verás tus pedidos, direcciones y lista de deseos. El panel completo llega en el Paso 9." />
+      {usuario.rol === "CLIENTE" && (
+        <EstadoDistribuidor distribuidor={usuario.distribuidor} descuento={config.descuentoDistribuidor} />
+      )}
       <div className="grid gap-4 sm:grid-cols-3">
         {tarjetas.map((t) => (
           <div key={t.titulo} className="rounded-xl border bg-card p-5">

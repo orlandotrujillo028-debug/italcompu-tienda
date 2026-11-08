@@ -18,7 +18,7 @@ export function panelPorRol(rol: Rol): string {
 /** Nombre legible del rol para mostrar en la interfaz. */
 export const nombreRol: Record<Rol, string> = {
   ADMIN: "Administrador",
-  VENDEDOR: "Vendedor",
+  VENDEDOR: "Vendedor (personal)",
   CLIENTE: "Cliente",
 };
 
@@ -26,16 +26,16 @@ const empiezaCon = (ruta: string, base: string) => ruta === base || ruta.startsW
 
 /** Rutas de inicio de sesión / registro (un usuario con sesión no necesita verlas). */
 export function esRutaDeAcceso(ruta: string): boolean {
-  return ["/login", "/registro", "/registro-vendedor", "/recuperar-contrasena"].some((r) => empiezaCon(ruta, r));
+  return ["/login", "/registro", "/registro-distribuidor", "/recuperar-contrasena"].some((r) => empiezaCon(ruta, r));
 }
 
 /**
  * ¿Puede este rol abrir esta ruta?
- * - /admin solo ADMIN · /vendedor solo VENDEDOR · el resto, cualquier usuario con sesión.
+ * - /admin solo ADMIN · /vendedor personal (VENDEDOR) y ADMIN · el resto, cualquier usuario con sesión.
  */
 export function rutaPermitida(rol: Rol, ruta: string): boolean {
   if (empiezaCon(ruta, "/admin")) return rol === "ADMIN";
-  if (empiezaCon(ruta, "/vendedor")) return rol === "VENDEDOR";
+  if (empiezaCon(ruta, "/vendedor")) return rol === "VENDEDOR" || rol === "ADMIN";
   return true;
 }
 

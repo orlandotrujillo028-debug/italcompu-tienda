@@ -2,17 +2,20 @@
 
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
+import type { z } from "zod";
 import { signIn, signOut } from "@/auth";
+import { requireRole } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
 import { destinoTrasLogin } from "@/lib/roles";
-import { slugify } from "@/lib/slug";
 import {
+  datosNegocioSchema,
   loginSchema,
   recuperarSchema,
   registroClienteSchema,
-  registroVendedorSchema,
+  registroDistribuidorSchema,
 } from "@/lib/validaciones/auth";
 
 export type ResultadoAccion = { error?: string; ok?: string };
@@ -70,52 +73,86 @@ export async function registrarCliente(datos: unknown, callbackUrl?: string | nu
   redirect(rol ? destinoTrasLogin(rol, callbackUrl) : "/login");
 }
 
-// ---------- Registro de VENDEDOR (queda PENDIENTE de aprobación) ----------
-async function slugLibre(nombreTienda: string) {
-  const base = slugify(nombreTienda) || "tienda";
-  let slug = base;
-  for (let i = 2; await prisma.vendorProfile.findUnique({ where: { slug }, select: { id: true } }); i++) {
-    slug = `${base}-${i}`;
-  }
-  return slug;
+// ---------- DISTRIBUIDORES (locales del mismo giro: precios especiales tras aprobación) ----------
+type DatosNegocio = z.output<typeof datosNegocioSchema>;
+
+const perfilDistribuidor = (d: DatosNegocio) => ({
+  nombreLocal: d.nombreLocal,
+  razonSocial: d.razonSocial,
+  ruc: d.ruc,
+  tipoNegocio: d.tipoNegocio,
+  provincia: d.provincia,
+  ciudad: d.ciudad,
+  direccion: d.direccion || null,
+  telefono: d.telefonoLocal,
+  estado: "PENDIENTE" as const,
+  motivoRechazo: null,
+  aprobadoEn: null,
+});
+
+function errorDuplicado(e: unknown) {
+  if (!(e instanceof Prisma.PrismaClientKnownRequestError) || e.code !== "P2002") return null;
+  const campos = String((e.meta as { target?: unknown })?.target ?? "");
+  return campos.includes("ruc")
+    ? "Ese RUC ya tiene una solicitud de distribuidor. Si es tuyo, escríbenos."
+    : "Ya existe una cuenta con ese correo. Inicia sesión y solicita ser distribuidor desde \"Mi cuenta\".";
 }
 
-export async function registrarVendedor(datos: unknown): Promise<ResultadoAccion> {
-  const v = registroVendedorSchema.safeParse(datos);
+/** Registro nuevo: crea la cuenta (CLIENTE) + la solicitud PENDIENTE. */
+export async function registrarDistribuidor(datos: unknown): Promise<ResultadoAccion> {
+  const v = registroDistribuidorSchema.safeParse(datos);
   if (!v.success) return { error: v.error.issues[0]?.message ?? "Revisa los datos." };
-  const { nombre, email, telefono, password, nombreTienda, ruc, descripcion } = v.data;
+  const { nombre, email, password } = v.data;
 
   try {
     await prisma.user.create({
       data: {
         name: nombre,
         email,
-        telefono,
-        cedula: ruc || null,
+        telefono: v.data.telefonoLocal,
+        cedula: v.data.ruc,
         password: await bcrypt.hash(password, 12),
-        rol: "VENDEDOR",
-        vendorProfile: {
-          create: {
-            nombreTienda,
-            slug: await slugLibre(nombreTienda),
-            ruc: ruc || null,
-            telefono,
-            descripcion: descripcion || null,
-            estado: "PENDIENTE",
-          },
-        },
+        rol: "CLIENTE",
+        distribuidor: { create: perfilDistribuidor(v.data) },
       },
     });
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      return { error: "Ya existe una cuenta con ese correo o nombre de tienda." };
-    }
-    console.error("registrarVendedor", e);
+    const duplicado = errorDuplicado(e);
+    if (duplicado) return { error: duplicado };
+    console.error("registrarDistribuidor", e);
     return { error: ERROR_GENERICO };
   }
 
   const rol = await entrar(email, password);
-  redirect(rol ? "/vendedor" : "/login");
+  redirect(rol ? "/cuenta" : "/login");
+}
+
+/** Un cliente que ya tiene cuenta solicita ser distribuidor (o vuelve a solicitar si lo rechazaron). */
+export async function solicitarDistribuidor(datos: unknown): Promise<ResultadoAccion> {
+  const usuario = await requireRole("CLIENTE");
+  const v = datosNegocioSchema.safeParse(datos);
+  if (!v.success) return { error: v.error.issues[0]?.message ?? "Revisa los datos." };
+
+  const actual = usuario.distribuidor?.estado;
+  if (actual === "PENDIENTE") return { error: "Ya tienes una solicitud en revisión." };
+  if (actual === "APROBADO") return { error: "Ya eres distribuidor." };
+  if (actual === "SUSPENDIDO") return { error: "Tu cuenta de distribuidor está suspendida. Escríbenos." };
+
+  try {
+    await prisma.distributorProfile.upsert({
+      where: { userId: usuario.id },
+      create: { userId: usuario.id, ...perfilDistribuidor(v.data) },
+      update: perfilDistribuidor(v.data), // solo llega aquí si estaba RECHAZADO
+    });
+  } catch (e) {
+    const duplicado = errorDuplicado(e);
+    if (duplicado) return { error: duplicado };
+    console.error("solicitarDistribuidor", e);
+    return { error: ERROR_GENERICO };
+  }
+
+  revalidatePath("/cuenta");
+  redirect("/cuenta");
 }
 
 // ---------- Recuperar contraseña (preparado) ----------

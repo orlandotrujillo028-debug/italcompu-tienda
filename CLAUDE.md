@@ -8,14 +8,16 @@ Guía de pasos: `../GUIA_PROMPTS_ECOMMERCE.md`. Avanzar **un paso a la vez**.
 - Categorías: computadores, laptops, componentes, periféricos, monitores, impresión, móviles, TV y video, energía, hogar, audio, redes, servidores, software, gaming (con subcategorías).
 - Moneda USD. Precios mostrados "Precio incluye IVA" (IVA 15 %, configurable). Se guarda `precioSinIva` y el IVA se calcula.
 - Producto: código (SKU), nombre, marca, categoría/subcategoría, descripción, especificaciones clave/valor, imágenes, precio, stock, estado (BORRADOR / PENDIENTE / PUBLICADO / RECHAZADO), destacado, nuevo.
-- Marketplace: los VENDEDORES suben productos y el ADMIN los aprueba.
+- **NO es marketplace**: todo lo vende ITALCOMPU. Los VENDEDORES son el personal de la tienda.
+- **Distribuidores**: un CLIENTE con local del mismo giro solicita ser distribuidor (RUC, nombre del local…) → el ADMIN aprueba → ve todos los precios con el % general `descuento_distribuidor` (Setting, por defecto 10 %). Mientras está PENDIENTE ve precios normales.
+- Precios SIEMPRE calculados en el servidor con `lib/precios.ts` (`getTarifa()` + `calcularPrecio()`); el pedido guarda el precio cobrado y el % aplicado.
 - Envíos en Ecuador (Servientrega u otro). Pagos: tarjeta (Placetopay/PayPhone), transferencia, contra entrega.
-- WhatsApp flotante, redes sociales, "¿Quiénes somos?", formulario "¿Quieres ser distribuidor?".
+- WhatsApp flotante, redes sociales, "¿Quiénes somos?", enlace "¿Tienes un local? Sé distribuidor" (`/registro-distribuidor`).
 
 ## Roles y paneles
-- **ADMIN → /admin**: dashboard, usuarios y roles, aprobar vendedores y productos, categorías, marcas, banners, pedidos, configuración (IVA, envío, datos de la tienda), solicitudes de distribuidor.
-- **VENDEDOR → /vendedor**: dashboard propio, CRUD de sus productos, pedidos con sus productos, perfil de tienda. Si está PENDIENTE ve "cuenta en revisión".
-- **CLIENTE → /cuenta**: mis pedidos, direcciones, datos, lista de deseos.
+- **ADMIN → /admin**: dashboard, usuarios y roles (crea al personal), aprobar productos, **aprobar/rechazar/suspender distribuidores**, categorías, marcas, banners, pedidos, configuración (IVA, envío, % descuento distribuidor, datos de la tienda). También puede entrar a /vendedor.
+- **VENDEDOR (personal de ITALCOMPU) → /vendedor**: dashboard, cargar/editar productos (quedan PENDIENTES hasta que el admin aprueba), atender pedidos (preparar, enviar, guía). No toca usuarios ni configuración. No hay registro público: los crea el admin.
+- **CLIENTE → /cuenta**: mis pedidos, direcciones, datos, lista de deseos, estado de su solicitud de distribuidor (`/cuenta/distribuidor`).
 - Visitante: navega y usa el carrito; para pagar inicia sesión.
 - La autorización se valida SIEMPRE en el servidor (middleware + `requireRole` en Server Actions), nunca solo ocultando botones.
 
@@ -43,7 +45,7 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 
 ## Autenticación (Paso 4)
 - `auth.config.ts` (sin Prisma, lo usa el middleware) · `auth.ts` (Credentials + bcrypt) · `middleware.ts` (1ª barrera por rol).
-- `lib/auth-guards.ts`: `getUsuarioActual()`, `requireUser()`, `requireRole(...)`, `requireVendedorAprobado()` — leen la BD en cada llamada; usarlos en TODA página de panel y Server Action.
+- `lib/auth-guards.ts`: `getUsuarioActual()`, `requireUser()`, `requireRole(...)`, `esDistribuidorAprobado()` — leen la BD en cada llamada; usarlos en TODA página de panel y Server Action.
 - `lib/roles.ts`: `panelPorRol`, `rutaPermitida`, `destinoTrasLogin` (solo rutas internas como callbackUrl).
 - Páginas en `app/(auth)`; acciones en `app/(auth)/actions.ts`; validaciones Zod en `lib/validaciones/`.
 

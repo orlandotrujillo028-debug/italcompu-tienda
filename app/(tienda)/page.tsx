@@ -24,7 +24,7 @@ export default function Home() {
       <div className="flex gap-3">
         <Button size="lg">Ver productos</Button>
         <Button asChild size="lg" variant="secondary">
-          <Link href="/registro-vendedor">Vende con nosotros</Link>
+          <Link href="/registro-distribuidor">¿Tienes un local? Sé distribuidor</Link>
         </Button>
       </div>
       <div className="flex gap-2" aria-hidden>
