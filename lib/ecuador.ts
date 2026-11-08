@@ -33,3 +33,31 @@ export const TIPOS_NEGOCIO = [
   "Empresa de software o sistemas",
   "Otro",
 ] as const;
+
+/** Ciudades principales por provincia (sugerencias; el cliente puede escribir otra). */
+export const CIUDADES_POR_PROVINCIA: Record<(typeof PROVINCIAS_ECUADOR)[number], string[]> = {
+  Azuay: ["Cuenca", "Gualaceo", "Paute", "Santa Isabel", "Sígsig", "Camilo Ponce Enríquez"],
+  Bolívar: ["Guaranda", "San Miguel", "Caluma", "Chillanes", "Echeandía"],
+  Cañar: ["Azogues", "La Troncal", "Cañar", "Biblián"],
+  Carchi: ["Tulcán", "San Gabriel", "El Ángel", "Mira"],
+  Chimborazo: ["Riobamba", "Guano", "Alausí", "Chambo", "Colta"],
+  Cotopaxi: ["Latacunga", "La Maná", "Pujilí", "Salcedo", "Saquisilí"],
+  "El Oro": ["Machala", "Pasaje", "Santa Rosa", "Huaquillas", "El Guabo", "Piñas", "Zaruma"],
+  Esmeraldas: ["Esmeraldas", "Quinindé", "Atacames", "San Lorenzo", "Muisne"],
+  Galápagos: ["Puerto Ayora", "Puerto Baquerizo Moreno", "Puerto Villamil"],
+  Guayas: ["Guayaquil", "Durán", "Samborondón", "Daule", "Milagro", "Playas", "Nobol", "El Triunfo", "Naranjal"],
+  Imbabura: ["Ibarra", "Otavalo", "Cotacachi", "Atuntaqui", "Pimampiro"],
+  Loja: ["Loja", "Catamayo", "Cariamanga", "Macará", "Saraguro"],
+  "Los Ríos": ["Babahoyo", "Quevedo", "Ventanas", "Vinces", "Buena Fe", "Valencia"],
+  Manabí: ["Portoviejo", "Manta", "Chone", "Jipijapa", "Montecristi", "El Carmen", "Bahía de Caráquez"],
+  "Morona Santiago": ["Macas", "Sucúa", "Gualaquiza", "Limón Indanza"],
+  Napo: ["Tena", "Archidona", "El Chaco"],
+  Orellana: ["Francisco de Orellana (Coca)", "La Joya de los Sachas", "Loreto"],
+  Pastaza: ["Puyo", "Mera", "Santa Clara"],
+  Pichincha: ["Quito", "Sangolquí", "Cayambe", "Machachi", "Tabacundo", "Pedro Vicente Maldonado", "Tumbaco", "Cumbayá"],
+  "Santa Elena": ["Santa Elena", "La Libertad", "Salinas"],
+  "Santo Domingo de los Tsáchilas": ["Santo Domingo", "La Concordia"],
+  Sucumbíos: ["Nueva Loja (Lago Agrio)", "Shushufindi", "Cascales"],
+  Tungurahua: ["Ambato", "Baños de Agua Santa", "Pelileo", "Píllaro", "Cevallos"],
+  "Zamora Chinchipe": ["Zamora", "Yantzaza", "Zumba", "El Pangui"],
+};

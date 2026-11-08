@@ -8,6 +8,10 @@ const prisma = new PrismaClient();
 // Contraseña de todos los usuarios de prueba (documentada en README.md)
 const PASSWORD_PRUEBA = "Italcompu2026!";
 
+// Datos bancarios FICTICIOS para probar el pago por transferencia (se editan en el admin).
+const DATOS_BANCARIOS_EJEMPLO =
+  "Banco de ejemplo · Cuenta corriente N.º 0000000000\nTitular: ITALCOMPU (ejemplo) · RUC 1790000000001\nEnvía el comprobante por WhatsApp indicando tu número de pedido.";
+
 const slugify = (texto: string) =>
   texto
     .toLowerCase()
@@ -252,6 +256,7 @@ async function main() {
       { clave: "telefono", valor: "02 000 0000" },
       { clave: "direccion_matriz", valor: "Av. Principal N1-23 y Secundaria, Quito" },
       { clave: "horario", valor: "Lun a Vie 9:00–18:30 · Sáb 9:00–13:00" },
+      { clave: "datos_bancarios", valor: DATOS_BANCARIOS_EJEMPLO },
       { clave: "facebook", valor: "https://facebook.com/" },
       { clave: "instagram", valor: "https://instagram.com/" },
       { clave: "tiktok", valor: "https://tiktok.com/" },

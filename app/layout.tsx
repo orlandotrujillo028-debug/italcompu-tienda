@@ -31,7 +31,8 @@ export default function RootLayout({
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
         {children}
-        <Toaster richColors position="top-right" />
+        {/* Abajo al centro: no tapa el header (menú, carrito) ni el botón de WhatsApp */}
+        <Toaster richColors position="bottom-center" />
       </body>
     </html>
   );

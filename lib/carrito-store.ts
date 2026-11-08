@@ -17,6 +17,8 @@ type EstadoCarrito = {
   cambiarCantidad: (productId: string, cantidad: number) => void;
   quitar: (productId: string) => void;
   vaciar: () => void;
+  /** Reemplaza el carrito por lo que confirmó el servidor (quita agotados, ajusta al stock). */
+  sincronizar: (items: ItemCarrito[]) => void;
 };
 
 const MAX_POR_PRODUCTO = 99;
@@ -44,6 +46,11 @@ export const useCarrito = create<EstadoCarrito>()(
         })),
       quitar: (productId) => set(({ items }) => ({ items: items.filter((i) => i.productId !== productId) })),
       vaciar: () => set({ items: [] }),
+      sincronizar: (nuevos) =>
+        set(({ items }) => {
+          const iguales = items.length === nuevos.length && items.every((i, k) => i.productId === nuevos[k]?.productId && i.cantidad === nuevos[k]?.cantidad);
+          return iguales ? { items } : { items: nuevos };
+        }),
     }),
     { name: "italcompu-carrito", version: 1 },
   ),

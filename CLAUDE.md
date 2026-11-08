@@ -69,6 +69,14 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - `components/listado/`: `Listado` (página completa), `FiltrosLateral`/`FiltrosMovil`, `Ordenar`, `Migas`, `conParams()`.
 - `/producto/[slug]`: solo PUBLICADO; `Galeria`, `AccionesProducto` (cantidad ≤ stock, Agregar / Comprar ahora), desglose con IVA, WhatsApp con nombre y código, pestañas y relacionados.
 
+## Carrito y checkout (Paso 8)
+- `lib/pedido.ts` → `cotizar(items, tarifa, metodoEnvio)`: única fuente de precios, stock y totales (carrito, checkout y crearPedido). Ajusta cantidades al stock y devuelve `avisos`. Total productos = Σ (precio con IVA × cantidad); IVA = total − subtotal. Envío `costo_envio` salvo retiro o total ≥ `envio_gratis_desde`.
+- Carrito: `/carrito` + `useCotizacion()` (pide la cotización al servidor y corrige el store con `sincronizar`).
+- `/checkout` (requiere sesión): envío (DOMICILIO | RETIRO), dirección (guardadas o nueva con `guardarDireccion`), pago (TARJETA | TRANSFERENCIA | CONTRA_ENTREGA), notas.
+- `crearPedido` (`app/(tienda)/checkout/actions.ts`): recotiza; si hay avisos no crea nada; descuenta stock con `updateMany ... stock >= cantidad` dentro de una transacción; guarda copia de dirección y precios; `revalidateTag("productos")`.
+- `/pedido/[numero]/confirmacion`: solo el dueño (o personal). Transferencia muestra `datos_bancarios` (Setting). Tarjeta: botón "Simular pago aprobado" SOLO en desarrollo (pasarela real en Paso 12).
+- Ojo: un pedido que falla dentro de la transacción igual consume un número de la secuencia (Postgres no los reutiliza).
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.
