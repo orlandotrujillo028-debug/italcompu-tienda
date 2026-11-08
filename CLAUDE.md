@@ -83,6 +83,13 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Acciones en `app/cuenta/actions.ts` (direcciones, datos, contraseña): SIEMPRE filtran por el usuario con sesión.
 - `lib/validaciones/cuenta.ts`: `cedulaORucValido` (módulo 10 + RUC). Fechas SIEMPRE con `fechaEC()` de `lib/formato.ts` (hora de Ecuador; el servidor en Vercel está en UTC).
 
+## Panel de ventas del personal (Paso 10)
+- `/vendedor` (VENDEDOR y ADMIN): resumen con `lib/ventas.ts` (ventas = PAGADO/PREPARANDO/ENVIADO/ENTREGADO, días en hora de Ecuador) y `GraficoVentas` (columnas hechas a mano, sin recharts; tooltip + tabla).
+- Productos: lista con filtros por estado/búsqueda/stock bajo; `ProductoForm` + `guardarProducto` (`app/vendedor/productos/actions.ts`). Reglas: borrador → BORRADOR; ADMIN → PUBLICADO; personal → PENDIENTE, salvo que en un PUBLICADO solo cambie el stock.
+- Imágenes: firma Cloudinary en el servidor (`firmarSubidaImagen`) y subida directa desde el navegador; enlaces manuales solo de `HOSTS_IMAGEN` (`lib/validaciones/producto.ts`). Requiere CLOUDINARY_* en .env.
+- Pedidos: `siguientesEstados()` en `lib/flujo-pedido.ts` (contra entrega/pagado → preparando → enviado con guía | retiro → entregado). `cambiarEstadoPedido` usa updateMany con el estado anterior para no pisar cambios simultáneos. Confirmar transferencias y cancelar: ADMIN (Paso 11).
+- `lib/actividad.ts` → `registrarActividad()` en cada cambio (tabla ActivityLog).
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.
