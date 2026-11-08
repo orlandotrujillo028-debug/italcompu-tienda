@@ -1,0 +1,11 @@
+# Todos los archivos de texto con saltos de línea LF (igual en Windows, Mac y el servidor).
+* text=auto eol=lf
+
+# Binarios: no tocar
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary

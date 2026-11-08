@@ -8,16 +8,33 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Campo } from "@/components/auth/campo";
 import { guardarDireccion } from "@/app/(tienda)/checkout/actions";
+import { actualizarDireccion } from "@/app/cuenta/actions";
 import { CIUDADES_POR_PROVINCIA, PROVINCIAS_ECUADOR } from "@/lib/ecuador";
 import { direccionSchema, type DireccionInput } from "@/lib/validaciones/pedido";
 
-/** Formulario de nueva dirección (checkout y, en el Paso 9, "Mis direcciones"). */
-export function DireccionForm({ alGuardar, alCancelar, nombreInicial = "" }: { alGuardar: (id: string) => void; alCancelar?: () => void; nombreInicial?: string }) {
+type Props = {
+  alGuardar: (id: string) => void;
+  alCancelar?: () => void;
+  nombreInicial?: string;
+  /** Si llega, el formulario EDITA esa dirección en lugar de crear una nueva. */
+  editar?: { id: string; valores: DireccionInput };
+};
+
+/** Formulario de dirección: crear (checkout, "Mis direcciones") o editar. */
+export function DireccionForm({ alGuardar, alCancelar, nombreInicial = "", editar }: Props) {
   const [error, setError] = useState<string>();
   const [pendiente, startTransition] = useTransition();
   const { register, handleSubmit, formState, watch } = useForm<DireccionInput>({
     resolver: zodResolver(direccionSchema),
-    defaultValues: { nombre: nombreInicial, telefono: "", provincia: "" as DireccionInput["provincia"], ciudad: "", direccion: "", referencia: "", principal: false },
+    defaultValues: editar?.valores ?? {
+      nombre: nombreInicial,
+      telefono: "",
+      provincia: "" as DireccionInput["provincia"],
+      ciudad: "",
+      direccion: "",
+      referencia: "",
+      principal: false,
+    },
   });
   const e = formState.errors;
   const provincia = watch("provincia");
@@ -26,9 +43,15 @@ export function DireccionForm({ alGuardar, alCancelar, nombreInicial = "" }: { a
   const enviar = handleSubmit((datos) => {
     setError(undefined);
     startTransition(async () => {
-      const r = await guardarDireccion(datos);
-      if ("error" in r) setError(r.error);
-      else alGuardar(r.id);
+      if (editar) {
+        const r = await actualizarDireccion(editar.id, datos);
+        if ("error" in r) setError(r.error);
+        else alGuardar(editar.id);
+      } else {
+        const r = await guardarDireccion(datos);
+        if ("error" in r) setError(r.error);
+        else alGuardar(r.id);
+      }
     });
   });
 

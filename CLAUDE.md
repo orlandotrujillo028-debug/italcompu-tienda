@@ -77,6 +77,12 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - `/pedido/[numero]/confirmacion`: solo el dueño (o personal). Transferencia muestra `datos_bancarios` (Setting). Tarjeta: botón "Simular pago aprobado" SOLO en desarrollo (pasarela real en Paso 12).
 - Ojo: un pedido que falla dentro de la transacción igual consume un número de la secuencia (Postgres no los reutiliza).
 
+## Panel del cliente (Paso 9)
+- `app/cuenta/layout.tsx`: `PanelShell` + `NavPanel` (menú lateral en escritorio, fila deslizable en móvil). Secciones: inicio, pedidos (lista + `/cuenta/pedidos/[numero]`), direcciones, datos, deseos, distribuidor.
+- Componentes de pedido compartidos (`components/pedidos/`): `EstadoBadge`, `LineaTiempo`, `DetallePedido`, `InstruccionesPago`. Textos/colores de estados en `lib/pedidos-ui.ts`.
+- Acciones en `app/cuenta/actions.ts` (direcciones, datos, contraseña): SIEMPRE filtran por el usuario con sesión.
+- `lib/validaciones/cuenta.ts`: `cedulaORucValido` (módulo 10 + RUC). Fechas SIEMPRE con `fechaEC()` de `lib/formato.ts` (hora de Ecuador; el servidor en Vercel está en UTC).
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.

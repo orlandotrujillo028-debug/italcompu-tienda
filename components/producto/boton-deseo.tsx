@@ -28,6 +28,7 @@ export function BotonDeseo({ productId, inicial, className = "" }: { productId: 
       } else {
         setEnLista(r.enLista);
         toast.success(r.enLista ? "Guardado en tu lista de deseos" : "Quitado de tu lista de deseos");
+        if (ruta.startsWith("/cuenta/deseos")) router.refresh(); // en la lista, la tarjeta desaparece al quitarla
       }
     });
 
