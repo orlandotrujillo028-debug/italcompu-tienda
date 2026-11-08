@@ -1,0 +1,331 @@
+// Esquema de base de datos de ITALCOMPU
+// Después de cambiarlo: npx prisma migrate dev --name <descripcion>
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ───────────── Usuarios y autenticación ─────────────
+
+enum Rol {
+  ADMIN
+  VENDEDOR
+  CLIENTE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // hash bcrypt (null si entra con Google)
+  telefono      String?
+  cedula        String? // cédula o RUC
+  rol           Rol       @default(CLIENTE)
+  activo        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  vendorProfile VendorProfile?
+  addresses     Address[]
+  orders        Order[]
+  wishlist      WishlistItem[]
+  actividad     ActivityLog[]
+
+  @@index([rol])
+}
+
+// Modelos requeridos por Auth.js (@auth/prisma-adapter)
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ───────────── Vendedores ─────────────
+
+enum EstadoVendedor {
+  PENDIENTE
+  APROBADO
+  SUSPENDIDO
+}
+
+model VendorProfile {
+  id             String         @id @default(cuid())
+  userId         String         @unique
+  nombreTienda   String
+  slug           String         @unique
+  ruc            String?
+  logo           String?
+  descripcion    String?
+  telefono       String?
+  datosBancarios String?
+  estado         EstadoVendedor @default(PENDIENTE)
+  comision       Decimal        @default(10) @db.Decimal(5, 2) // % que cobra ITALCOMPU
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products   Product[]
+  orderItems OrderItem[]
+
+  @@index([estado])
+}
+
+// ───────────── Catálogo ─────────────
+
+model Category {
+  id       String  @id @default(cuid())
+  nombre   String
+  slug     String  @unique
+  icono    String? // nombre de icono lucide (ej. "laptop")
+  imagen   String?
+  orden    Int     @default(0)
+  activa   Boolean @default(true)
+  parentId String?
+
+  parent   Category?  @relation("Subcategorias", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("Subcategorias")
+  products Product[]
+
+  @@index([parentId])
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  nombre   String    @unique
+  slug     String    @unique
+  logo     String?
+  products Product[]
+}
+
+enum EstadoProducto {
+  BORRADOR
+  PENDIENTE
+  PUBLICADO
+  RECHAZADO
+}
+
+model Product {
+  id            String         @id @default(cuid())
+  codigo        String         @unique // SKU
+  nombre        String
+  slug          String         @unique
+  descripcion   String?
+  specs         Json? // [{ "clave": "RAM", "valor": "16 GB" }]
+  precioSinIva  Decimal        @db.Decimal(10, 2)
+  stock         Int            @default(0)
+  estado        EstadoProducto @default(PENDIENTE)
+  motivoRechazo String?
+  destacado     Boolean        @default(false)
+  nuevo         Boolean        @default(false)
+  garantiaMeses Int            @default(12)
+  categoryId    String
+  brandId       String?
+  vendorId      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  category   Category       @relation(fields: [categoryId], references: [id])
+  brand      Brand?         @relation(fields: [brandId], references: [id])
+  vendor     VendorProfile  @relation(fields: [vendorId], references: [id])
+  images     ProductImage[]
+  orderItems OrderItem[]
+  wishlist   WishlistItem[]
+
+  @@index([estado, categoryId])
+  @@index([estado, brandId])
+  @@index([vendorId])
+  @@index([destacado])
+  @@index([nuevo])
+}
+
+model ProductImage {
+  id        String @id @default(cuid())
+  productId String
+  url       String
+  orden     Int    @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model WishlistItem {
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+}
+
+// ───────────── Clientes y pedidos ─────────────
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  nombre     String // quien recibe
+  telefono   String
+  provincia  String
+  ciudad     String
+  direccion  String
+  referencia String?
+  principal  Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum EstadoPedido {
+  PENDIENTE_PAGO
+  PAGADO
+  PREPARANDO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum MetodoPago {
+  TARJETA
+  TRANSFERENCIA
+  CONTRA_ENTREGA
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  numero         Int          @unique @default(autoincrement()) // número legible: #1001
+  userId         String
+  estado         EstadoPedido @default(PENDIENTE_PAGO)
+  metodoPago     MetodoPago
+  referenciaPago String?
+  subtotal       Decimal      @db.Decimal(10, 2) // sin IVA
+  iva            Decimal      @db.Decimal(10, 2)
+  envio          Decimal      @db.Decimal(10, 2)
+  total          Decimal      @db.Decimal(10, 2)
+  direccionEnvio Json // copia de la dirección al momento de comprar
+  courier        String?
+  guiaEnvio      String?
+  notas          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([estado, createdAt])
+}
+
+model OrderItem {
+  id           String       @id @default(cuid())
+  orderId      String
+  productId    String
+  vendorId     String
+  nombre       String // copia del nombre al momento de comprar
+  codigo       String
+  precioSinIva Decimal      @db.Decimal(10, 2)
+  cantidad     Int
+  estado       EstadoPedido @default(PENDIENTE_PAGO)
+
+  order   Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+  vendor  VendorProfile @relation(fields: [vendorId], references: [id])
+
+  @@index([orderId])
+  @@index([vendorId])
+}
+
+// ───────────── Contenido y configuración ─────────────
+
+model Banner {
+  id        String   @id @default(cuid())
+  titulo    String
+  subtitulo String?
+  imagen    String
+  enlace    String?
+  orden     Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+enum EstadoSolicitud {
+  NUEVA
+  EN_REVISION
+  APROBADA
+  RECHAZADA
+}
+
+model DistributorRequest {
+  id        String          @id @default(cuid())
+  empresa   String
+  ruc       String
+  contacto  String
+  email     String
+  telefono  String
+  ciudad    String
+  mensaje   String?
+  estado    EstadoSolicitud @default(NUEVA)
+  createdAt DateTime        @default(now())
+}
+
+model Setting {
+  clave String @id // ej. "iva", "costo_envio", "whatsapp"
+  valor String
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  accion    String // ej. "producto.aprobado"
+  detalle   String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
