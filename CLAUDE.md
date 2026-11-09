@@ -110,6 +110,13 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Pagos: el admin confirma manualmente (comprobante) en el detalle del pedido. Tarjeta = link de pago enviado por WhatsApp.
 - Pendiente: envío por provincia y emails transaccionales (Resend) si el dueño los quiere.
 
+## Páginas informativas (Paso 13)
+- `/quienes-somos`, `/servicio-tecnico`, `/distribuidores`, `/contacto`, `/politicas-de-garantia`, `/proteccion-de-datos` (LOPDP), `/terminos`.
+- Plantilla `PaginaInfo` + `Prosa` + `AvisoEjemplo` (aviso amarillo de "texto de ejemplo", solo en desarrollo) en `components/info/pagina-info.tsx`.
+- Datos legales y sucursales: `lib/empresa.ts` (razón social y RUC con [placeholders] a completar). Contacto/horario/dirección: Setting.
+- Contacto: mapa de Google sin API key (iframe `?output=embed`) y formulario que abre WhatsApp (no envía correos).
+- Textos de ejemplo: el dueño debe revisarlos; los legales, con un abogado.
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.
