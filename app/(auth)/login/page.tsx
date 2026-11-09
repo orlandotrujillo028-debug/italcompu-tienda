@@ -20,10 +20,10 @@ export default async function LoginPage({ searchParams }: Props) {
   const registro = callbackUrl ? `/registro?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/registro";
 
   return (
-    <Card className="shadow-xl">
-      <CardHeader>
-        <CardTitle className="text-2xl text-marca-navy">Iniciar sesión</CardTitle>
-        <CardDescription>Ingresa con tu correo y contraseña.</CardDescription>
+    <Card>
+      <CardHeader className="gap-1.5">
+        <CardTitle className="text-2xl font-bold tracking-tight text-marca-navy">Iniciar sesión</CardTitle>
+        <CardDescription>Ingresa con tu correo y contraseña para continuar.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <LoginForm callbackUrl={callbackUrl} />

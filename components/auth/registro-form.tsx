@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo } from "@/components/auth/campo";
 import { registrarCliente } from "@/app/(auth)/actions";
@@ -33,11 +33,11 @@ export function RegistroForm({ callbackUrl }: { callbackUrl?: string }) {
           {error}
         </p>
       )}
-      <Campo id="nombre" label="Nombre completo" autoComplete="name" error={e.nombre?.message} {...register("nombre")} />
-      <Campo id="email" label="Correo electrónico" type="email" autoComplete="email" error={e.email?.message} {...register("email")} />
-      <Campo id="telefono" label="Celular (opcional)" type="tel" autoComplete="tel" placeholder="0991234567" error={e.telefono?.message} {...register("telefono")} />
-      <Campo id="password" label="Contraseña" type="password" autoComplete="new-password" ayuda="Mínimo 8 caracteres, con letras y números." error={e.password?.message} {...register("password")} />
-      <Campo id="confirmar" label="Repite la contraseña" type="password" autoComplete="new-password" error={e.confirmar?.message} {...register("confirmar")} />
+      <Campo id="nombre" label="Nombre completo" autoComplete="name" icono={UserRound} error={e.nombre?.message} {...register("nombre")} />
+      <Campo id="email" label="Correo electrónico" type="email" autoComplete="email" icono={Mail} error={e.email?.message} {...register("email")} />
+      <Campo id="telefono" label="Celular (opcional)" type="tel" autoComplete="tel" icono={Phone} placeholder="0991234567" error={e.telefono?.message} {...register("telefono")} />
+      <Campo id="password" label="Contraseña" type="password" icono={LockKeyhole} autoComplete="new-password" ayuda="Mínimo 8 caracteres, con letras y números." error={e.password?.message} {...register("password")} />
+      <Campo id="confirmar" label="Repite la contraseña" type="password" icono={LockKeyhole} autoComplete="new-password" error={e.confirmar?.message} {...register("confirmar")} />
       <Button type="submit" size="lg" className="h-10 w-full" disabled={pendiente}>
         {pendiente && <Loader2 className="animate-spin" />}
         Crear mi cuenta

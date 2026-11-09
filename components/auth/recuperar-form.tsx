@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Campo } from "@/components/auth/campo";
 import { solicitarRecuperacion } from "@/app/(auth)/actions";
@@ -37,7 +37,7 @@ export function RecuperarForm() {
           {mensaje.error}
         </p>
       )}
-      <Campo id="email" label="Correo electrónico" type="email" autoComplete="email" error={formState.errors.email?.message} {...register("email")} />
+      <Campo id="email" label="Correo electrónico" type="email" autoComplete="email" icono={Mail} error={formState.errors.email?.message} {...register("email")} />
       <Button type="submit" size="lg" className="h-10 w-full" disabled={pendiente}>
         {pendiente && <Loader2 className="animate-spin" />}
         Enviar enlace

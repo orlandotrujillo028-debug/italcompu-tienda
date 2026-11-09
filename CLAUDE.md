@@ -1,6 +1,6 @@
 # ITALCOMPU — Ecommerce de tecnología (Ecuador)
 
-Eslogan: **"Vendemos soluciones"**. Logo: `public/logo-italcompu.webp`.
+Eslogan: **"Vendemos soluciones"**. Logo vectorial animado: `components/marca/logo-italcompu.tsx` (ver sección "Logo"); `public/logo-italcompu.webp` queda solo para Open Graph / JSON-LD.
 Lógica de referencia: tecnomegastore.ec (solo la lógica; marca, textos e imágenes propios).
 Guía de pasos: `../GUIA_PROMPTS_ECOMMERCE.md`. Avanzar **un paso a la vez**.
 
@@ -132,6 +132,17 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Datos base compartidos por ambos seeds: `prisma/datos-base.ts`.
 - Variables en Vercel: DATABASE_URL (pooler), DIRECT_URL, AUTH_SECRET (nueva), NEXT_PUBLIC_SITE_URL (dominio final), CLOUDINARY_*.
 - Las migraciones se hicieron con `migrate diff` + `migrate deploy` (el entorno no es interactivo); probado que aplican limpias desde una base vacía.
+
+## Logo (vectorial y animado)
+- `<LogoItalcompu variante="icono"|"completo" animado decorativo />` en `components/marca/logo-italcompu.tsx`: SVG en línea, nítido a cualquier tamaño. Se usa en header (icono), footer, login/registro, paneles y 404 raíz.
+- Trazos en `components/marca/logo-datos.ts` (GENERADO a partir de medidas del logo original 1492×1342; texto convertido a trazos con Roboto 500 / Roboto Condensed 700 ajustado letra por letra). No editar a mano.
+- Animación (CSS en `app/globals.css`, sección "Logo animado"): el monitor aparece, las órbitas se dibujan con máscaras (stroke-dashoffset), los nodos aparecen y laten con una onda suave, brillo periódico en la pantalla y letras en cascada. Con "reducir movimiento" del sistema se muestra quieto.
+- `tono="claro"`: versión para fondos oscuros (textos blancos, pantalla translúcida, sin recuadro blanco). La usa el login.
+- IDs internos con `useId()`: se puede poner varias veces en la misma página. Usa `decorativo` cuando el nombre ya está escrito al lado (evita lectura doble).
+
+## Páginas de acceso (login, registro, recuperar, distribuidor)
+- `app/(auth)/layout.tsx`: `FondoTecnologico` a pantalla completa (cuadrícula, resplandores, circuito con pulsos), logo `tono="claro"`, título grande por ruta (`components/auth/titulo-auth.tsx`), redes sociales desde Setting, y el formulario en tarjeta de cristal.
+- Estilos en `app/globals.css` sección "Páginas de acceso": `.auth-oscuro` redefine variables (card, muted, border, primary) y aclara `text-marca-*` para fondo oscuro; los campos siguen blancos con texto oscuro.
 
 ## Reglas de trabajo
 - Toda la interfaz en español.

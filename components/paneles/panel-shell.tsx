@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LogoItalcompu } from "@/components/marca/logo-italcompu";
 import Link from "next/link";
 import { Store } from "lucide-react";
 import { UserMenu } from "@/components/layout/user-menu";
@@ -14,7 +14,7 @@ export function PanelShell({ titulo, children }: { titulo: string; children: Rea
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-3">
             <Link href="/" className="rounded-lg bg-white p-1" aria-label="Ir a la tienda">
-              <Image src="/logo-italcompu.webp" alt="ITALCOMPU" width={44} height={40} />
+              <LogoItalcompu decorativo className="h-9 w-auto" />
             </Link>
             <span className="text-lg font-semibold">{titulo}</span>
           </div>

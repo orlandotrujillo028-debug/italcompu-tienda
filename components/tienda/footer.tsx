@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LogoItalcompu } from "@/components/marca/logo-italcompu";
 import Link from "next/link";
 import { Banknote, Clock, CreditCard, HandCoins, Mail, MapPin, Phone, Truck } from "lucide-react";
 import { IconoMarca } from "@/components/tienda/iconos";
@@ -44,7 +44,7 @@ export function Footer({ config }: { config: ConfigTienda }) {
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-12 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr_1.3fr]">
         <div className="col-span-2 space-y-4 lg:col-span-1">
           <Link href="/" className="inline-block rounded-xl bg-white p-2" aria-label="ITALCOMPU, ir al inicio">
-            <Image src="/logo-italcompu.webp" alt="ITALCOMPU" width={110} height={99} />
+            <LogoItalcompu variante="completo" decorativo className="h-24 w-auto" />
           </Link>
           <p className="max-w-xs text-white/70">Tecnología para tu hogar, tu oficina y tu negocio. Vendemos soluciones.</p>
           <div className="flex gap-2">

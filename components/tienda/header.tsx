@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LogoItalcompu } from "@/components/marca/logo-italcompu";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { UserMenu } from "@/components/layout/user-menu";
@@ -15,7 +15,7 @@ export function Header({ categorias, esDistribuidor }: { categorias: CategoriaMe
         <MenuMovil categorias={categorias} esDistribuidor={esDistribuidor} />
 
         <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="ITALCOMPU, ir al inicio">
-          <Image src="/logo-italcompu.webp" alt="ITALCOMPU" width={56} height={50} priority className="h-11 w-auto lg:h-12" />
+          <LogoItalcompu decorativo className="h-11 w-auto lg:h-12" />
           <span className="hidden leading-tight sm:block">
             <span className="block text-lg font-extrabold tracking-tight text-marca-navy">
               ITAL<span className="text-marca-azul">COMPU</span>
