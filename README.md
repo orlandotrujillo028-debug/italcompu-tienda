@@ -18,8 +18,13 @@ Contexto completo del proyecto en [CLAUDE.md](CLAUDE.md).
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Compilar para producción |
 | `npm run db:migrate` | Aplicar cambios del `prisma/schema.prisma` |
-| `npm run db:seed` | Reiniciar datos de ejemplo |
+| `npm run db:seed` | Reiniciar datos de ejemplo (⚠️ BORRA TODO — solo desarrollo) |
 | `npm run db:studio` | Ver y editar la base de datos en el navegador |
+| `npm run db:deploy` | Aplicar migraciones en producción (sin borrar datos) |
+| `npm run db:produccion` | Datos iniciales de la tienda real: categorías, marcas, configuración y banners (no borra nada) |
+| `npm run crear-admin` | Crear (o ascender) la cuenta de administrador |
+
+**Para publicar la tienda en internet sigue [PUBLICAR.md](PUBLICAR.md).**
 
 ## Usuarios de prueba (solo desarrollo)
 

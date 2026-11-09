@@ -2,6 +2,7 @@
 // ¡Borra y vuelve a crear todo! No usar en producción.
 import { PrismaClient, Rol, EstadoDistribuidor, EstadoProducto } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { BANNERS, CATEGORIAS, MARCAS, slugify } from "./datos-base";
 
 const prisma = new PrismaClient();
 
@@ -11,36 +12,6 @@ const PASSWORD_PRUEBA = "Italcompu2026!";
 // Datos bancarios FICTICIOS para probar el pago por transferencia (se editan en el admin).
 const DATOS_BANCARIOS_EJEMPLO =
   "Banco de ejemplo · Cuenta corriente N.º 0000000000\nTitular: ITALCOMPU (ejemplo) · RUC 1790000000001\nEnvía el comprobante por WhatsApp indicando tu número de pedido.";
-
-const slugify = (texto: string) =>
-  texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
-// Categoría principal → icono lucide + subcategorías
-const CATEGORIAS: { nombre: string; icono: string; subs: string[] }[] = [
-  { nombre: "Computadores", icono: "monitor", subs: ["Escritorio", "Todo en uno", "Mini PC", "Workstation"] },
-  { nombre: "Laptops", icono: "laptop", subs: ["Gaming", "Comercial", "Hogar y estudio", "Ultradelgadas"] },
-  { nombre: "Componentes", icono: "cpu", subs: ["Procesadores", "Memorias RAM", "Tarjetas de video", "Placas madre", "Fuentes de poder", "Cases"] },
-  { nombre: "Almacenamiento", icono: "hard-drive", subs: ["SSD M.2", "SSD SATA", "Discos duros internos", "Discos externos", "Memorias USB"] },
-  { nombre: "Periféricos", icono: "mouse", subs: ["Teclados", "Mouse", "Combos", "Webcams", "Bases para laptops"] },
-  { nombre: "Monitores", icono: "monitor-smartphone", subs: ["Gaming", "Oficina", "Curvos", "Profesionales"] },
-  { nombre: "Impresión", icono: "printer", subs: ["Láser", "Tinta continua", "Multifuncionales", "Tintas y tóners"] },
-  { nombre: "Móviles", icono: "smartphone", subs: ["Celulares", "Tablets", "Accesorios"] },
-  { nombre: "TV y Video", icono: "tv", subs: ["Televisores", "Proyectores", "Streaming"] },
-  { nombre: "Energía", icono: "battery-charging", subs: ["UPS", "Reguladores", "Cargadores"] },
-  { nombre: "Audio", icono: "headphones", subs: ["Audífonos", "Parlantes", "Micrófonos"] },
-  { nombre: "Redes", icono: "router", subs: ["Routers", "Switches", "Access Points", "Cableado"] },
-  { nombre: "Servidores", icono: "server", subs: ["Torre", "Rack", "Almacenamiento NAS"] },
-  { nombre: "Software", icono: "app-window", subs: ["Sistemas operativos", "Ofimática", "Antivirus"] },
-  { nombre: "Gaming", icono: "gamepad-2", subs: ["Sillas gamer", "Consolas", "Controles"] },
-  { nombre: "Hogar", icono: "house", subs: ["Cámaras de seguridad", "Domótica", "Pequeños electrodomésticos"] },
-];
-
-const MARCAS = ["HP", "Lenovo", "Dell", "ASUS", "Acer", "Samsung", "Kingston", "Logitech", "Epson", "TP-Link", "Western Digital", "Xiaomi", "Intel", "AMD", "Canon", "APC"];
 
 // [nombre, categoría, subcategoría, marca, precio sin IVA, stock, specs]
 type Ejemplo = [string, string, string, string, number, number, Record<string, string>];
@@ -85,12 +56,6 @@ const PRODUCTOS: Ejemplo[] = [
   ["Audífonos gamer Logitech G435 inalámbricos", "Audio", "Audífonos", "Logitech", 69, 15, { Conexión: "Lightspeed + Bluetooth", Peso: "165 g" }],
   ["Router TP-Link Archer AX55 WiFi 6", "Redes", "Routers", "TP-Link", 89, 18, { Estándar: "WiFi 6 AX3000", Puertos: "4x Gigabit" }],
   ["Switch TP-Link TL-SG108 8 puertos Gigabit", "Redes", "Switches", "TP-Link", 25, 25, { Puertos: "8x Gigabit" }],
-];
-
-const BANNERS = [
-  { titulo: "Laptops gaming al mejor precio", subtitulo: "RTX serie 40 con garantía local", enlace: "/categoria/laptops-gaming" },
-  { titulo: "Arma tu PC con ITALCOMPU", subtitulo: "Procesadores, tarjetas de video y más", enlace: "/categoria/componentes" },
-  { titulo: "Imprime más por menos", subtitulo: "Impresoras de tinta continua", enlace: "/categoria/impresion" },
 ];
 
 async function main() {

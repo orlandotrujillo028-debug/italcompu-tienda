@@ -10,6 +10,10 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
+    "db:deploy": "prisma migrate deploy",
+    "db:produccion": "tsx prisma/seed-produccion.ts",
+    "crear-admin": "tsx scripts/crear-admin.ts",
+    "vercel-build": "prisma migrate deploy && next build --turbopack",
     "postinstall": "prisma generate"
   },
   "dependencies": {

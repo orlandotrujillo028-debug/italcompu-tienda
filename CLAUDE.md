@@ -125,6 +125,14 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Contraste: `marca-gris` = #646464 (no #7a7a7a); nunca texto blanco sobre `marca-cyan` ni texto cyan sobre blanco; verde WhatsApp para botones #0f7a6e (hover #075e54).
 - `npm audit`: quedan alertas solo en herramientas de compilación/CLI (postcss dentro de Next, CLI de Prisma y shadcn); se corrigen con Next 16 / Prisma 7 (actualización mayor pendiente).
 
+## Publicación (Paso 15)
+- Guía para el dueño: `PUBLICAR.md` (GitHub privado → Neon producción separada → datos iniciales → Vercel → dominio .ec).
+- `vercel-build` = `prisma migrate deploy && next build`: cada despliegue aplica migraciones pendientes.
+- Producción: `npm run db:produccion` (`prisma/seed-produccion.ts`, idempotente, nunca borra) y `npm run crear-admin` (`scripts/crear-admin.ts`). NUNCA `db:seed` en producción.
+- Datos base compartidos por ambos seeds: `prisma/datos-base.ts`.
+- Variables en Vercel: DATABASE_URL (pooler), DIRECT_URL, AUTH_SECRET (nueva), NEXT_PUBLIC_SITE_URL (dominio final), CLOUDINARY_*.
+- Las migraciones se hicieron con `migrate diff` + `migrate deploy` (el entorno no es interactivo); probado que aplican limpias desde una base vacía.
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.
