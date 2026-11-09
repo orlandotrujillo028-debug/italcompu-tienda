@@ -50,7 +50,7 @@ export default async function AdminInicio() {
         <li className="rounded-xl border bg-card p-4">
           <p className="text-sm text-marca-gris">Público / Distribuidores</p>
           <p className="text-lg font-bold text-marca-navy tabular-nums">{formatoUSD(publico._sum.total ?? 0)}</p>
-          <p className="text-sm font-semibold text-marca-cyan tabular-nums">{formatoUSD(distribuidores._sum.total ?? 0)}</p>
+          <p className="text-sm font-semibold text-marca-azul tabular-nums">{formatoUSD(distribuidores._sum.total ?? 0)}</p>
         </li>
         <li className="rounded-xl border bg-card p-4">
           <p className="flex items-center gap-2 text-sm text-marca-gris"><CalendarClock className="size-4 text-marca-azul" /> Pedidos de hoy</p>

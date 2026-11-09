@@ -21,7 +21,7 @@ export function CarritoBoton() {
     >
       <ShoppingCart className="size-5" />
       {n > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-marca-cyan px-1 text-[11px] font-bold text-white">
+        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-marca-cyan px-1 text-[11px] font-bold text-marca-navy">
           {n > 99 ? "99+" : n}
         </span>
       )}

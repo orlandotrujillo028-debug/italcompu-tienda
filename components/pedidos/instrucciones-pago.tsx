@@ -33,7 +33,7 @@ export async function InstruccionesPago({ pedido }: Props) {
               </p>
               <pre className="rounded-lg bg-marca-fondo p-3 font-sans text-sm whitespace-pre-wrap">{envio.datosBancarios || "Te enviaremos los datos bancarios por correo."}</pre>
               {whatsapp && (
-                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-[#128C7E] hover:underline">
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-[#0f7a6e] hover:underline">
                   <IconoMarca marca="whatsapp" className="size-4" /> Enviar comprobante por WhatsApp
                 </a>
               )}

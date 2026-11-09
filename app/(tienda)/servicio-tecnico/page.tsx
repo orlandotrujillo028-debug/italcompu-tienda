@@ -51,7 +51,7 @@ export default async function ServicioTecnicoPage() {
           Para garantías de productos comprados en la tienda, ten a mano tu factura o número de pedido. Lee las <Link href="/politicas-de-garantia" className="font-medium text-marca-azul hover:underline">políticas de garantía</Link>.
         </p>
         {whatsapp && (
-          <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#128C7E] px-5 font-semibold text-white hover:bg-[#0f7a6e]">
+          <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#0f7a6e] px-5 font-semibold text-white hover:bg-[#075e54]">
             <IconoMarca marca="whatsapp" className="size-5" /> Agendar por WhatsApp
           </a>
         )}

@@ -117,6 +117,14 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - Contacto: mapa de Google sin API key (iframe `?output=embed`) y formulario que abre WhatsApp (no envía correos).
 - Textos de ejemplo: el dueño debe revisarlos; los legales, con un abogado.
 
+## Calidad, seguridad y SEO (Paso 14)
+- Límite de intentos en BD (`LimiteIntento`, `lib/limite.ts`, SQL atómico): login 5/15 min por correo y 30/15 min por IP (DENTRO de `authorize` en `auth.ts`, porque /api/auth/callback/credentials se puede llamar directo; lanza `DemasiadosIntentos`), registros y recuperar 5/h por IP. Login correcto reinicia el contador del correo.
+- Encabezados de seguridad y `poweredByHeader: false` en `next.config.ts`.
+- SEO: `app/sitemap.ts` (solo publicados y categorías visibles), `app/robots.ts`, `metadataBase` + Open Graph en `app/layout.tsx`, JSON-LD con `components/seo/json-ld.tsx` (escapa `<`): Product + BreadcrumbList en el producto (precio PÚBLICO), ElectronicsStore en la home. Si una página define `openGraph`, repetir siteName/locale (Next no los combina).
+- 404: `app/(tienda)/not-found.tsx` + ruta comodín `app/(tienda)/[...no-existe]`. ⚠️ NO poner loading.tsx en segmentos que llaman notFound() (producto, categoría, marca): el 404 respondería con código 200. Hay loading en buscar/nuevos/marcas y en los paneles; error.tsx en cada sección y global-error.tsx.
+- Contraste: `marca-gris` = #646464 (no #7a7a7a); nunca texto blanco sobre `marca-cyan` ni texto cyan sobre blanco; verde WhatsApp para botones #0f7a6e (hover #075e54).
+- `npm audit`: quedan alertas solo en herramientas de compilación/CLI (postcss dentro de Next, CLI de Prisma y shadcn); se corrigen con Next 16 / Prisma 7 (actualización mayor pendiente).
+
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.

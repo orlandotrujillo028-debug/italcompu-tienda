@@ -8,6 +8,7 @@ import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 import { signIn, signOut } from "@/auth";
 import { requireRole } from "@/lib/auth-guards";
+import { contarIntento, ipActual, LIMITES } from "@/lib/limite";
 import { prisma } from "@/lib/prisma";
 import { destinoTrasLogin } from "@/lib/roles";
 import {
@@ -22,16 +23,27 @@ export type ResultadoAccion = { error?: string; ok?: string };
 
 const ERROR_GENERICO = "No pudimos completar la solicitud. Intenta de nuevo.";
 
-/** Inicia sesión y devuelve el rol (o null si las credenciales no sirven). */
+const BLOQUEADO = "Demasiados intentos. Por seguridad espera unos minutos e inténtalo de nuevo.";
+
+/**
+ * Inicia sesión y devuelve el rol; null si las credenciales no sirven;
+ * "bloqueado" si se superó el límite de intentos.
+ */
 async function entrar(email: string, password: string) {
   try {
     await signIn("credentials", { email, password, redirect: false });
   } catch (e) {
-    if (e instanceof AuthError) return null;
+    if (e instanceof AuthError) return (e as { code?: string }).code === "demasiados-intentos" ? ("bloqueado" as const) : null;
     throw e;
   }
   const u = await prisma.user.findUnique({ where: { email }, select: { rol: true } });
   return u?.rol ?? null;
+}
+
+/** Cuenta un intento de registro/recuperación por IP. Devuelve un mensaje si hay que frenar. */
+async function frenarPorIp(tipo: "registro" | "recuperar") {
+  const r = await contarIntento(`${tipo}:ip:${await ipActual()}`, tipo === "registro" ? LIMITES.registroIp : LIMITES.recuperarIp);
+  return r.bloqueado ? `Demasiados intentos desde tu conexión. Vuelve a intentarlo en ${r.minutos} min.` : null;
 }
 
 // ---------- Iniciar sesión ----------
@@ -40,6 +52,7 @@ export async function iniciarSesion(datos: unknown, callbackUrl?: string | null)
   if (!v.success) return { error: "Revisa el correo y la contraseña." };
 
   const rol = await entrar(v.data.email, v.data.password);
+  if (rol === "bloqueado") return { error: BLOQUEADO };
   if (!rol) return { error: "Correo o contraseña incorrectos." };
 
   redirect(destinoTrasLogin(rol, callbackUrl));
@@ -49,6 +62,8 @@ export async function iniciarSesion(datos: unknown, callbackUrl?: string | null)
 export async function registrarCliente(datos: unknown, callbackUrl?: string | null): Promise<ResultadoAccion> {
   const v = registroClienteSchema.safeParse(datos);
   if (!v.success) return { error: v.error.issues[0]?.message ?? "Revisa los datos." };
+  const freno = await frenarPorIp("registro");
+  if (freno) return { error: freno };
   const { nombre, email, telefono, password } = v.data;
 
   try {
@@ -70,7 +85,7 @@ export async function registrarCliente(datos: unknown, callbackUrl?: string | nu
   }
 
   const rol = await entrar(email, password);
-  redirect(rol ? destinoTrasLogin(rol, callbackUrl) : "/login");
+  redirect(rol && rol !== "bloqueado" ? destinoTrasLogin(rol, callbackUrl) : "/login");
 }
 
 // ---------- DISTRIBUIDORES (locales del mismo giro: precios especiales tras aprobación) ----------
@@ -102,6 +117,8 @@ function errorDuplicado(e: unknown) {
 export async function registrarDistribuidor(datos: unknown): Promise<ResultadoAccion> {
   const v = registroDistribuidorSchema.safeParse(datos);
   if (!v.success) return { error: v.error.issues[0]?.message ?? "Revisa los datos." };
+  const freno = await frenarPorIp("registro");
+  if (freno) return { error: freno };
   const { nombre, email, password } = v.data;
 
   try {
@@ -124,7 +141,7 @@ export async function registrarDistribuidor(datos: unknown): Promise<ResultadoAc
   }
 
   const rol = await entrar(email, password);
-  redirect(rol ? "/cuenta" : "/login");
+  redirect(rol && rol !== "bloqueado" ? "/cuenta" : "/login");
 }
 
 /** Un cliente que ya tiene cuenta solicita ser distribuidor (o vuelve a solicitar si lo rechazaron). */
@@ -159,6 +176,8 @@ export async function solicitarDistribuidor(datos: unknown): Promise<ResultadoAc
 export async function solicitarRecuperacion(datos: unknown): Promise<ResultadoAccion> {
   const v = recuperarSchema.safeParse(datos);
   if (!v.success) return { error: "Correo no válido." };
+  const freno = await frenarPorIp("recuperar");
+  if (freno) return { error: freno };
 
   // TODO Paso 12: generar un token (VerificationToken), guardarlo con vencimiento
   // de 1 hora y enviar el enlace por email con Resend.

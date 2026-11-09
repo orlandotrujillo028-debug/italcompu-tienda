@@ -44,7 +44,7 @@ export function ProductCard({
 
         <div className="pointer-events-none absolute top-2 left-2 flex flex-col items-start gap-1">
           {agotado && <span className="rounded bg-destructive px-2 py-0.5 text-[11px] font-bold text-white">Agotado</span>}
-          {producto.nuevo && <span className="rounded bg-marca-cyan px-2 py-0.5 text-[11px] font-bold text-white">Nuevo</span>}
+          {producto.nuevo && <span className="rounded bg-marca-cyan px-2 py-0.5 text-[11px] font-bold text-marca-navy">Nuevo</span>}
           {producto.destacado && <span className="rounded bg-marca-navy px-2 py-0.5 text-[11px] font-bold text-white">Destacado</span>}
         </div>
 

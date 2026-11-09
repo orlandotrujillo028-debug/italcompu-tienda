@@ -62,7 +62,7 @@ export function CarruselBanners({ banners }: { banners: BannerHome[] }) {
                 <Link
                   href={b.enlace}
                   tabIndex={i === actual ? 0 : -1}
-                  className="mt-1 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-marca-navy shadow hover:bg-marca-cyan hover:text-white sm:mt-3"
+                  className="mt-1 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-marca-navy shadow hover:bg-marca-azul hover:text-white sm:mt-3"
                 >
                   Ver más
                   <ArrowRight className="size-4" />

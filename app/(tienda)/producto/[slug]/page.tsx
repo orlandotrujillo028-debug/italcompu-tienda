@@ -5,6 +5,7 @@ import { cache } from "react";
 import { CheckCircle2, PackageCheck, ShieldCheck, Truck, AlertTriangle } from "lucide-react";
 import { CarruselProductos, ItemCarrusel } from "@/components/home/carrusel-productos";
 import { Migas } from "@/components/listado/migas";
+import { JsonLd } from "@/components/seo/json-ld";
 import { AccionesProducto } from "@/components/producto/acciones-producto";
 import { BotonDeseo } from "@/components/producto/boton-deseo";
 import { Galeria } from "@/components/producto/galeria";
@@ -59,7 +60,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: p.nombre,
     description: descripcion,
     alternates: { canonical: `/producto/${p.slug}` },
-    openGraph: { title: p.nombre, description: descripcion, images: p.images[0] ? [{ url: p.images[0].url }] : undefined },
+    // Next reemplaza (no combina) el openGraph del layout, así que repetimos sitio e idioma.
+    openGraph: {
+      type: "website",
+      siteName: "ITALCOMPU",
+      locale: "es_EC",
+      url: `/producto/${p.slug}`,
+      title: p.nombre,
+      description: descripcion,
+      images: p.images[0] ? [{ url: p.images[0].url, alt: p.nombre }] : [{ url: "/logo-italcompu.webp" }],
+    },
   };
 }
 
@@ -116,8 +126,45 @@ export default async function ProductoPage({ params }: Props) {
     { nombre: p.nombre },
   ];
 
+  // Datos para Google: SIEMPRE el precio público (nunca el de distribuidor del usuario que mira).
+  const sitio = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const precioPublico = calcularPrecio(p.precioSinIva, { iva: tarifa.iva, esDistribuidor: false, descuento: 0 }).conIva;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.nombre,
+      sku: p.codigo,
+      mpn: p.codigo,
+      image: p.images.map((i) => i.url),
+      description: p.descripcion ?? p.nombre,
+      ...(p.brand ? { brand: { "@type": "Brand", name: p.brand.nombre } } : {}),
+      category: [padre?.nombre, p.category.nombre].filter(Boolean).join(" > "),
+      offers: {
+        "@type": "Offer",
+        url: `${sitio}/producto/${p.slug}`,
+        priceCurrency: "USD",
+        price: precioPublico.toFixed(2),
+        availability: agotado ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+        itemCondition: "https://schema.org/NewCondition",
+        seller: { "@type": "Organization", name: "ITALCOMPU" },
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [{ nombre: "Inicio", href: "/" }, ...migas].map((m, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: m.nombre,
+        ...("href" in m && m.href ? { item: `${sitio}${m.href}` } : {}),
+      })),
+    },
+  ];
+
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 py-5 sm:py-6">
+      <JsonLd datos={jsonLd} />
       <Migas items={migas} />
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
@@ -126,7 +173,7 @@ export default async function ProductoPage({ params }: Props) {
         <section className="space-y-5">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              {p.nuevo && <span className="rounded bg-marca-cyan px-2 py-0.5 text-xs font-bold text-white">Nuevo</span>}
+              {p.nuevo && <span className="rounded bg-marca-cyan px-2 py-0.5 text-xs font-bold text-marca-navy">Nuevo</span>}
               {p.destacado && <span className="rounded bg-marca-navy px-2 py-0.5 text-xs font-bold text-white">Destacado</span>}
             </div>
             <h1 className="text-2xl leading-tight font-bold text-marca-navy sm:text-3xl">{p.nombre}</h1>
@@ -178,7 +225,7 @@ export default async function ProductoPage({ params }: Props) {
               href={whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[#25D366] font-medium text-[#128C7E] hover:bg-[#25D366]/10"
+              className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[#25D366] font-medium text-[#0f7a6e] hover:bg-[#25D366]/10"
             >
               <IconoMarca marca="whatsapp" className="size-5" />
               Consultar por WhatsApp

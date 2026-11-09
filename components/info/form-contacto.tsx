@@ -40,7 +40,7 @@ export function FormContacto({ whatsapp }: { whatsapp: string }) {
         <Label htmlFor="c-mensaje">Mensaje</Label>
         <textarea id="c-mensaje" rows={4} maxLength={800} value={d.mensaje} onChange={(e) => setD({ ...d, mensaje: e.target.value })} placeholder="Ej.: ¿Tienen la laptop X en stock para retirar hoy?" className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus-visible:border-ring" />
       </div>
-      <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#128C7E] px-5 font-semibold text-white hover:bg-[#0f7a6e]">
+      <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#0f7a6e] px-5 font-semibold text-white hover:bg-[#075e54]">
         <IconoMarca marca="whatsapp" className="size-5" /> Enviar por WhatsApp
       </button>
     </form>

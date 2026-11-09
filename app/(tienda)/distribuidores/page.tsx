@@ -90,7 +90,7 @@ export default async function DistribuidoresPage() {
         {PREGUNTAS.map((q) => (
           <details key={q.p} className="group rounded-xl border bg-card p-4">
             <summary className="cursor-pointer list-none font-semibold text-marca-navy [&::-webkit-details-marker]:hidden">
-              <span className="mr-2 inline-block text-marca-cyan transition group-open:rotate-90">›</span>
+              <span className="mr-2 inline-block text-marca-azul transition group-open:rotate-90">›</span>
               {q.p}
             </summary>
             <p className="mt-2 pl-5 text-sm text-marca-gris">{q.r}</p>

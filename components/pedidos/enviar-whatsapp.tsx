@@ -21,7 +21,7 @@ export async function EnviarPorWhatsapp({ numero, titulo = "Confirma tu pedido p
         href={enlace}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#128C7E] px-5 font-semibold text-white hover:bg-[#0f7a6e]"
+        className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0f7a6e] px-5 font-semibold text-white hover:bg-[#075e54]"
       >
         <IconoMarca marca="whatsapp" className="size-5" />
         Enviar por WhatsApp

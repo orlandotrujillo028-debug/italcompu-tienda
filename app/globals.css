@@ -53,7 +53,7 @@
   --color-marca-navy: #0b2f8a;
   --color-marca-azul: #0a6db3;
   --color-marca-cyan: #12b4e6;
-  --color-marca-gris: #7a7a7a;
+  --color-marca-gris: #646464; /* gris del logo (#7a7a7a) oscurecido para que el texto cumpla contraste 4.5:1 */
   --color-marca-fondo: #f4f5f7;
 }
 

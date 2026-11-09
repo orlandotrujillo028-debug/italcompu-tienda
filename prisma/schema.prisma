@@ -263,6 +263,7 @@ model Order {
 
   @@index([userId])
   @@index([estado, createdAt])
+  @@index([createdAt]) // listas por fecha, filtro desde/hasta, "pedidos de hoy"
 }
 
 model OrderItem {
@@ -309,4 +310,16 @@ model ActivityLog {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
+}
+
+// ───────────── Seguridad ─────────────
+
+// Límite de intentos (login, registros): clave = "login:ip:1.2.3.4", "login:email:x@y.com", etc.
+// Se guarda en la base para que funcione aunque la tienda corra en varios servidores (Vercel).
+model LimiteIntento {
+  clave  String   @id
+  conteo Int      @default(0)
+  expira DateTime
+
+  @@index([expira])
 }

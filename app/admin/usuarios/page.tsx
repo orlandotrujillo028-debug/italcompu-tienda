@@ -83,7 +83,7 @@ export default async function UsuariosPage({ searchParams }: Props) {
                   <td className="px-3 py-2">
                     <p className="font-medium">{u.name ?? "Sin nombre"} {yo && <span className="text-xs text-marca-azul">(tú)</span>}</p>
                     <p className="text-xs text-marca-gris">{u.email}</p>
-                    {u.distribuidor && <p className="text-xs text-marca-cyan">Distribuidor: {u.distribuidor.estado.toLowerCase()}</p>}
+                    {u.distribuidor && <p className="text-xs text-marca-azul">Distribuidor: {u.distribuidor.estado.toLowerCase()}</p>}
                   </td>
                   <td className="px-3 py-2"><SelectorRol userId={u.id} rol={u.rol} deshabilitado={yo} /></td>
                   <td className="px-3 py-2 text-right tabular-nums">{u._count.orders}</td>

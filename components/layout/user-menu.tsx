@@ -38,7 +38,7 @@ export async function UserMenu({ tono = "claro" }: { tono?: "claro" | "oscuro" }
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className={colorTexto} aria-label={`Menú de ${primerNombre}`}>
-          <span className="flex size-6 items-center justify-center rounded-full bg-marca-cyan text-xs font-bold text-white">
+          <span className="flex size-6 items-center justify-center rounded-full bg-marca-azul text-xs font-bold text-white">
             {primerNombre.charAt(0).toUpperCase()}
           </span>
           <span className="hidden max-w-32 truncate sm:inline">{primerNombre}</span>

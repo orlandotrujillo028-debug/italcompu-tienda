@@ -6,10 +6,13 @@ import { Vitrina, VitrinaCategoria } from "@/components/home/vitrina";
 import { getUsuarioActual } from "@/lib/auth-guards";
 import { getBannersActivos, getIdsDeseos, getMenuCategorias, getVitrinasHome } from "@/lib/catalogo";
 import { getConfigPrecios, getTarifa } from "@/lib/precios";
+import { JsonLd } from "@/components/seo/json-ld";
+import { getConfigTienda } from "@/lib/config-tienda";
+import { EMPRESA } from "@/lib/empresa";
 
 // Página de inicio de la tienda.
 export default async function Home() {
-  const [banners, categorias, vitrinas, tarifa, deseos, usuario, config] = await Promise.all([
+  const [banners, categorias, vitrinas, tarifa, deseos, usuario, config, tienda] = await Promise.all([
     getBannersActivos(),
     getMenuCategorias(),
     getVitrinasHome(),
@@ -17,7 +20,26 @@ export default async function Home() {
     getIdsDeseos(),
     getUsuarioActual(),
     getConfigPrecios(),
+    getConfigTienda(),
   ]);
+
+  // Datos de la tienda para Google (aparecen en búsquedas como "ITALCOMPU Quito").
+  const sitio = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ElectronicsStore",
+    name: "ITALCOMPU",
+    slogan: "Vendemos soluciones",
+    url: sitio,
+    logo: `${sitio}/logo-italcompu.webp`,
+    image: `${sitio}/logo-italcompu.webp`,
+    ...(tienda.telefono ? { telephone: tienda.telefono } : {}),
+    ...(tienda.email ? { email: tienda.email } : {}),
+    ...(tienda.direccion ? { address: { "@type": "PostalAddress", streetAddress: tienda.direccion, addressLocality: EMPRESA.ciudad, addressCountry: "EC" } } : {}),
+    currenciesAccepted: "USD",
+    sameAs: Object.values(tienda.redes).filter((u) => /^https:\/\/[^/]+\/.+/.test(u)), // solo perfiles reales, no "https://facebook.com/"
+    potentialAction: { "@type": "SearchAction", target: `${sitio}/buscar?q={q}`, "query-input": "required name=q" },
+  };
   const comun = { tarifa, deseos };
   // La invitación a distribuidor solo tiene sentido para visitantes y clientes que aún no lo son.
   const invitar = !tarifa.esDistribuidor && (!usuario || usuario.rol === "CLIENTE");
@@ -27,6 +49,7 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-7xl space-y-10 px-4 py-5 sm:space-y-12 sm:py-6">
+      <JsonLd datos={jsonLd} />
       <h1 className="sr-only">ITALCOMPU: tienda de tecnología en Ecuador</h1>
 
       <div className="space-y-4">
