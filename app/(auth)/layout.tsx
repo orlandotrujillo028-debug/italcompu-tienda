@@ -19,14 +19,14 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   ].filter((r) => r.url);
 
   return (
-    <div className="relative isolate min-h-screen text-white">
+    <div className="relative isolate min-h-screen text-marca-navy">
       <FondoTecnologico className="-z-10" />
 
       <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-5 py-10 lg:grid-cols-[1.1fr_1fr] lg:gap-20 lg:px-8">
         {/* Mensaje de marca */}
         <section className="space-y-8 text-center lg:text-left">
           <Link href="/" className="inline-block" aria-label="ITALCOMPU, volver a la tienda">
-            <LogoItalcompu variante="completo" tono="claro" decorativo className="h-24 w-auto drop-shadow-[0_0_24px_rgba(18,180,230,0.35)] lg:h-32" />
+            <LogoItalcompu variante="completo" decorativo className="h-24 w-auto lg:h-32" />
           </Link>
           <TituloAuth />
           {redes.length > 0 && (
@@ -38,7 +38,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${r.nombre} de ITALCOMPU`}
-                  className="flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/90 transition hover:border-marca-cyan hover:bg-marca-cyan/20 hover:text-white"
+                  className="flex size-10 items-center justify-center rounded-full border border-marca-azul/20 bg-white text-marca-azul shadow-sm transition hover:border-marca-cyan hover:bg-marca-cyan hover:text-white"
                 >
                   <IconoMarca marca={r.marca} className="size-4" />
                 </a>
@@ -49,9 +49,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
         {/* Formulario */}
         <div className="w-full">
-          <main className="auth-oscuro mx-auto w-full max-w-md">{children}</main>
+          <main className="auth-claro mx-auto w-full max-w-md">{children}</main>
           <div className="mx-auto mt-6 flex max-w-md flex-col items-center gap-4 text-sm">
-            <Link href="/" className="inline-flex items-center gap-1.5 text-white/80 hover:text-white">
+            <Link href="/" className="inline-flex items-center gap-1.5 text-marca-gris hover:text-marca-azul">
               <ArrowLeft className="size-4" />
               Volver a la tienda
             </Link>
@@ -64,14 +64,14 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`${r.nombre} de ITALCOMPU`}
-                    className="flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/90 hover:bg-marca-cyan/20"
+                    className="flex size-9 items-center justify-center rounded-full border border-marca-azul/20 bg-white text-marca-azul shadow-sm hover:bg-marca-cyan hover:text-white"
                   >
                     <IconoMarca marca={r.marca} className="size-4" />
                   </a>
                 ))}
               </div>
             )}
-            <p className="text-xs text-white/55">© {anio} ITALCOMPU · Vendemos soluciones</p>
+            <p className="text-xs text-marca-gris">© {anio} ITALCOMPU · Vendemos soluciones</p>
           </div>
         </div>
       </div>

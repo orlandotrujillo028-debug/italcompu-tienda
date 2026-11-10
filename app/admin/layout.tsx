@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BadgePercent, FolderTree, History, Image as ImageIcon, LayoutDashboard, Package, Settings, ShoppingBag, Store, Users } from "lucide-react";
+import { BadgePercent, FileSpreadsheet, FolderTree, History, Image as ImageIcon, LayoutDashboard, Package, Settings, ShoppingBag, Store, Users } from "lucide-react";
 import { NavPanel, type ItemNav } from "@/components/paneles/nav-panel";
 import { PanelShell } from "@/components/paneles/panel-shell";
 import { requireRole } from "@/lib/auth-guards";
@@ -24,6 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/vendedor/pedidos?estado=PENDIENTE_PAGO", texto: conAviso("Pedidos", transferencias), icono: <ShoppingBag /> },
     { href: "/admin/distribuidores", texto: conAviso("Distribuidores", distribuidores), icono: <BadgePercent /> },
     { href: "/admin/usuarios", texto: "Usuarios", icono: <Users /> },
+    { href: "/admin/inventario", texto: "Inventario", icono: <FileSpreadsheet /> },
     { href: "/admin/catalogo", texto: "Categorías y marcas", icono: <FolderTree /> },
     { href: "/admin/banners", texto: "Banners", icono: <ImageIcon /> },
     { href: "/admin/configuracion", texto: "Configuración", icono: <Settings /> },

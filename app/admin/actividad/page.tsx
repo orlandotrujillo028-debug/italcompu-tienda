@@ -38,6 +38,9 @@ const ACCIONES: Record<string, string> = {
   "banner.editado": "Editó banner",
   "banner.eliminado": "Eliminó banner",
   "configuracion.editada": "Cambió configuración",
+  "inventario.subido": "Subió inventario",
+  "inventario.aplicado": "Aplicó inventario a la tienda",
+  "inventario.eliminado": "Borró carga de inventario",
 };
 
 type Props = { searchParams: Promise<{ page?: string }> };

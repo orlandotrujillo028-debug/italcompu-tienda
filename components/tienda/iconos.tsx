@@ -1,6 +1,9 @@
 import {
   AppWindow,
+  Armchair,
+  Backpack,
   BatteryCharging,
+  Cable,
   Cpu,
   Gamepad2,
   HardDrive,
@@ -16,6 +19,7 @@ import {
   Server,
   Smartphone,
   Tv,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { siFacebook, siInstagram, siTiktok, siWhatsapp, type SimpleIcon } from "simple-icons";
@@ -38,6 +42,10 @@ const ICONOS_CATEGORIA: Record<string, LucideIcon> = {
   "app-window": AppWindow,
   "gamepad-2": Gamepad2,
   house: House,
+  cable: Cable,
+  backpack: Backpack,
+  wrench: Wrench,
+  armchair: Armchair,
 };
 
 export function IconoCategoria({ nombre, className }: { nombre?: string | null; className?: string }) {

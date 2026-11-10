@@ -137,15 +137,24 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - `<LogoItalcompu variante="icono"|"completo" animado decorativo />` en `components/marca/logo-italcompu.tsx`: SVG en línea, nítido a cualquier tamaño. Se usa en header (icono), footer, login/registro, paneles y 404 raíz.
 - Trazos en `components/marca/logo-datos.ts` (GENERADO a partir de medidas del logo original 1492×1342; texto convertido a trazos con Roboto 500 / Roboto Condensed 700 ajustado letra por letra). No editar a mano.
 - Animación (CSS en `app/globals.css`, sección "Logo animado"): el monitor aparece, las órbitas se dibujan con máscaras (stroke-dashoffset), los nodos aparecen y laten con una onda suave, brillo periódico en la pantalla y letras en cascada. Con "reducir movimiento" del sistema se muestra quieto.
-- `tono="claro"`: versión para fondos oscuros (textos blancos, pantalla translúcida, sin recuadro blanco). La usa el login.
+- `tono="claro"`: versión para fondos oscuros (textos blancos, pantalla translúcida, sin recuadro blanco). Hoy no la usa ninguna página (el login pasó a fondo blanco).
 - IDs internos con `useId()`: se puede poner varias veces en la misma página. Usa `decorativo` cuando el nombre ya está escrito al lado (evita lectura doble).
 
 ## Páginas de acceso (login, registro, recuperar, distribuidor)
-- `app/(auth)/layout.tsx`: `FondoTecnologico` a pantalla completa (cuadrícula, resplandores, circuito con pulsos), logo `tono="claro"`, título grande por ruta (`components/auth/titulo-auth.tsx`), redes sociales desde Setting, y el formulario en tarjeta de cristal.
-- Estilos en `app/globals.css` sección "Páginas de acceso": `.auth-oscuro` redefine variables (card, muted, border, primary) y aclara `text-marca-*` para fondo oscuro; los campos siguen blancos con texto oscuro.
+- `app/(auth)/layout.tsx`: `FondoTecnologico` a pantalla completa en tonos CLAROS (predomina el blanco, a pedido del dueño: cuadrícula azul tenue, resplandores suaves, circuito con pulsos cyan), logo normal, título navy por ruta (`components/auth/titulo-auth.tsx`), redes sociales desde Setting, y el formulario en tarjeta blanca con sombra.
+- Estilos en `app/globals.css` sección "Páginas de acceso": `.auth-claro` da a la tarjeta borde redondeado, fondo blanco y sombra azulada; `.auth-pulso`, `.auth-nodo` y `.auth-resplandor` animan el fondo.
 
 ## Reglas de trabajo
 - Toda la interfaz en español.
 - Al terminar cada paso: decir qué archivos se crearon, qué comandos ejecutar y cómo probarlo.
 - No avanzar al siguiente paso hasta que el usuario lo pida.
 - Secretos solo en `.env` (nunca en el código ni en git).
+
+## Inventario de sucursal (Excel del sistema contable)
+- Decisión del dueño (10-nov-2026): la tienda tiene SOLO los productos del inventario de la sucursal (hoy "3 - SUCURSAL SHUSHUFINDI"). Los 42 productos de ejemplo se borraron con `npm run inventario:reemplazar -- "ruta\inventario.xls"` (`scripts/reemplazar-catalogo.ts`: pide escribir BORRAR; borra productos, pedidos, deseos y marcas; reinicia pedidos en #1001). NO usarlo para el día a día.
+- Día a día: **Admin → Inventario** (`app/admin/inventario`): subir el .xls → se guarda como `InventarioCarga` + `InventarioItem` (foto, NO toca la tienda) → página de comparación con la carga anterior (llegaron, ya no están, más/menos stock, cambió PVP, cambió costo sin PVP) → botón "Aplicar a la tienda" (solo la carga más reciente). "Borrar carga" solo si no se aplicó.
+- El archivo es XML de Excel 2003 (SpreadsheetML), no binario: `lib/inventario/leer-excel.ts` lo lee sin librerías (busca la fila con Código/Stock/PVP; "Bodega:" = sucursal). Un .xlsx re-guardado se rechaza con mensaje.
+- `lib/inventario/clasificar.ts`: categoría/subcategoría de la tienda por REGLAS sobre el nombre (277 vienen como "CATEGORIA GENERAL"), luego por categoría contable, si no "Accesorios"; marca buscada en el nombre (casi todas dicen "MARCA GENERICA"); `nombreLegible()` pasa MAYÚSCULAS a Título respetando siglas y modelos. Para corregir ubicaciones: ajustar reglas ahí.
+- `lib/inventario/sincronizar.ts` (`aplicarCarga`): nuevos → PUBLICADO (nombre/categoría/marca solo al crear; ediciones del panel se respetan); existentes → solo stock y precio (UPDATE masivo con VALUES); ausentes → BORRADOR + stock 0 + `motivoRechazo = MOTIVO_OCULTO` (se reactivan solos si vuelven); categorías: `activa` = tiene productos publicados (el inventario manda sobre la visibilidad); si no hay destacados, destaca los 8 de mayor precio.
+- Precios: PVP del Excel INCLUYE IVA → `precioSinIva = PVP / 1,15` con 4 decimales (`Product.precioSinIva` es Decimal(10,4)). `calcularPrecio` calcula `conIva` desde el valor sin redondear, así el precio mostrado = PVP exacto al centavo. Stock con decimales (metros de cable) se redondea hacia abajo.
+- Costo: solo se guarda en `InventarioItem` (no se muestra en la tienda).

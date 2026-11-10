@@ -17,6 +17,8 @@ const seguridad = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false, // no revelar que usamos Next.js
+  // El Excel de inventario se sube con una Server Action (el límite por defecto es 1 MB).
+  experimental: { serverActions: { bodySizeLimit: "8mb" } },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" }, // imágenes reales de productos

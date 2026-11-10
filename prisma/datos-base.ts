@@ -14,20 +14,25 @@ export const slugify = (texto: string) =>
 export const CATEGORIAS: { nombre: string; icono: string; subs: string[] }[] = [
   { nombre: "Computadores", icono: "monitor", subs: ["Escritorio", "Todo en uno", "Mini PC", "Workstation"] },
   { nombre: "Laptops", icono: "laptop", subs: ["Gaming", "Comercial", "Hogar y estudio", "Ultradelgadas"] },
-  { nombre: "Componentes", icono: "cpu", subs: ["Procesadores", "Memorias RAM", "Tarjetas de video", "Placas madre", "Fuentes de poder", "Cases"] },
-  { nombre: "Almacenamiento", icono: "hard-drive", subs: ["SSD M.2", "SSD SATA", "Discos duros internos", "Discos externos", "Memorias USB"] },
-  { nombre: "Periféricos", icono: "mouse", subs: ["Teclados", "Mouse", "Combos", "Webcams", "Bases para laptops"] },
+  { nombre: "Componentes", icono: "cpu", subs: ["Procesadores", "Memorias RAM", "Tarjetas de video", "Placas madre", "Fuentes de poder", "Cases", "Refrigeración"] },
+  { nombre: "Almacenamiento", icono: "hard-drive", subs: ["SSD M.2", "SSD SATA", "Discos duros internos", "Discos externos", "Memorias USB", "Cases para disco"] },
+  { nombre: "Periféricos", icono: "mouse", subs: ["Teclados", "Mouse", "Combos", "Webcams", "Bases para laptops", "Pads de mouse"] },
   { nombre: "Monitores", icono: "monitor-smartphone", subs: ["Gaming", "Oficina", "Curvos", "Profesionales"] },
-  { nombre: "Impresión", icono: "printer", subs: ["Láser", "Tinta continua", "Multifuncionales", "Tintas y tóners"] },
+  { nombre: "Impresión", icono: "printer", subs: ["Láser", "Tinta continua", "Multifuncionales", "Tintas y tóners", "Punto de venta", "Repuestos de impresora", "Papel y suministros"] },
   { nombre: "Móviles", icono: "smartphone", subs: ["Celulares", "Tablets", "Accesorios"] },
   { nombre: "TV y Video", icono: "tv", subs: ["Televisores", "Proyectores", "Streaming"] },
-  { nombre: "Energía", icono: "battery-charging", subs: ["UPS", "Reguladores", "Cargadores"] },
+  { nombre: "Energía", icono: "battery-charging", subs: ["UPS", "Reguladores", "Cargadores", "Baterías y pilas", "Cables de poder"] },
   { nombre: "Audio", icono: "headphones", subs: ["Audífonos", "Parlantes", "Micrófonos"] },
-  { nombre: "Redes", icono: "router", subs: ["Routers", "Switches", "Access Points", "Cableado"] },
+  { nombre: "Redes", icono: "router", subs: ["Routers", "Switches", "Access Points", "Cableado", "Adaptadores de red"] },
   { nombre: "Servidores", icono: "server", subs: ["Torre", "Rack", "Almacenamiento NAS"] },
   { nombre: "Software", icono: "app-window", subs: ["Sistemas operativos", "Ofimática", "Antivirus"] },
   { nombre: "Gaming", icono: "gamepad-2", subs: ["Sillas gamer", "Consolas", "Controles"] },
   { nombre: "Hogar", icono: "house", subs: ["Cámaras de seguridad", "Domótica", "Pequeños electrodomésticos"] },
+  // Agregadas para el inventario real de la sucursal (Excel del sistema contable).
+  { nombre: "Cables y adaptadores", icono: "cable", subs: ["Cables de video", "Cables USB y datos", "Adaptadores y hubs"] },
+  { nombre: "Accesorios", icono: "backpack", subs: ["Mochilas y estuches"] },
+  { nombre: "Servicio técnico", icono: "wrench", subs: ["Herramientas", "Limpieza y mantenimiento", "Repuestos de laptop", "Servicios"] },
+  { nombre: "Mobiliario", icono: "armchair", subs: [] },
 ];
 
 export const MARCAS = ["HP", "Lenovo", "Dell", "ASUS", "Acer", "Samsung", "Kingston", "Logitech", "Epson", "TP-Link", "Western Digital", "Xiaomi", "Intel", "AMD", "Canon", "APC"];

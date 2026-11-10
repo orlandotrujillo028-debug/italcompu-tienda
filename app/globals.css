@@ -177,41 +177,22 @@
 @keyframes logo-letra { from { opacity: 0; transform: translateY(45%); } }
 @keyframes logo-desvanecer { from { opacity: 0; } }
 
-/* ---------- Páginas de acceso (app/(auth)): formulario sobre fondo oscuro ---------- */
-.auth-oscuro {
-  --card: transparent;
-  --card-foreground: #ffffff;
-  --muted-foreground: rgb(255 255 255 / 0.72);
-  --border: rgb(255 255 255 / 0.14);
-  --accent: rgb(255 255 255 / 0.07);
-  --accent-foreground: #e3f5fd;
-  --destructive: #fca5a5;
-  --primary: #0a6db3;
-  --primary-foreground: #ffffff;
-}
-.auth-oscuro > [data-slot="card"] {
+/* ---------- Páginas de acceso (app/(auth)): formulario sobre fondo claro ---------- */
+.auth-claro > [data-slot="card"] {
   border-radius: 1.25rem;
-  background: linear-gradient(160deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.03));
-  --tw-ring-color: rgb(255 255 255 / 0.12);
-  box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.12);
-  @apply backdrop-blur-lg;
+  background: rgb(255 255 255 / 0.92);
+  --tw-ring-color: rgb(10 109 179 / 0.12);
+  box-shadow: 0 30px 70px -30px rgb(11 47 138 / 0.28), 0 2px 6px rgb(11 47 138 / 0.05);
+  @apply backdrop-blur-md;
   padding-block: calc(var(--card-spacing) + 0.75rem);
 }
-.auth-oscuro .text-marca-navy { color: #ffffff; }
-.auth-oscuro .text-marca-azul { color: #7fdcf7; }
-.auth-oscuro .text-marca-gris { color: rgb(255 255 255 / 0.75); }
-.auth-oscuro input,
-.auth-oscuro textarea,
-.auth-oscuro select { color: #0f172a; }
-.auth-oscuro input::placeholder,
-.auth-oscuro textarea::placeholder { color: #94a3b8; }
 .auth-pulso { stroke-dasharray: 10 90; stroke-dashoffset: 100; opacity: 0; filter: drop-shadow(0 0 4px #12b4e6); }
 .auth-nodo { transform-box: fill-box; transform-origin: center; }
 @media (prefers-reduced-motion: no-preference) {
   .auth-pulso { animation: auth-pulso 7s linear infinite; }
   .auth-nodo { animation: auth-nodo 3s ease-in-out infinite; }
   .auth-resplandor { animation: auth-resplandor 14s ease-in-out infinite alternate; }
-  .auth-oscuro > [data-slot="card"] { animation: auth-entrada 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .auth-claro > [data-slot="card"] { animation: auth-entrada 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
 }
 @keyframes auth-pulso {
   0% { stroke-dashoffset: 100; opacity: 0; }

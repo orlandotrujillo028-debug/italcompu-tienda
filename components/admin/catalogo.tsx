@@ -12,7 +12,7 @@ type Sub = { id: string; nombre: string; orden: number; activa: boolean; product
 type Cat = Sub & { slug: string; icono: string | null; imagen: string | null; children: Sub[] };
 type Marca = { id: string; nombre: string; productos: number };
 
-const ICONOS = ["monitor", "laptop", "cpu", "hard-drive", "mouse", "monitor-smartphone", "printer", "smartphone", "tv", "battery-charging", "headphones", "router", "server", "app-window", "gamepad-2", "house"];
+const ICONOS = ["monitor", "laptop", "cpu", "hard-drive", "mouse", "monitor-smartphone", "printer", "smartphone", "tv", "battery-charging", "headphones", "router", "server", "app-window", "gamepad-2", "house", "cable", "backpack", "wrench", "armchair"];
 const input = "h-8 rounded-md border border-input bg-white px-2 text-sm outline-none focus:border-ring";
 
 function useAccion() {

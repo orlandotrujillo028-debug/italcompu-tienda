@@ -27,8 +27,8 @@ export function TituloAuth() {
   const t = TEXTOS[ruta] ?? TEXTOS["/login"];
   return (
     <div className="space-y-4">
-      <h1 className="text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">{t.titulo}</h1>
-      <p className="max-w-md text-base text-white/75 lg:text-lg">{t.texto}</p>
+      <h1 className="text-4xl leading-[1.05] font-extrabold tracking-tight text-marca-navy sm:text-5xl lg:text-6xl">{t.titulo}</h1>
+      <p className="max-w-md text-base text-marca-gris lg:text-lg">{t.texto}</p>
     </div>
   );
 }
