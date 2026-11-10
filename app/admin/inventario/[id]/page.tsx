@@ -105,7 +105,7 @@ export default async function CargaInventarioPage({ params }: Props) {
         {ocultos > 0 && (
           <p className="text-xs text-marca-gris">
             Hay {ocultos} producto(s) ocultos porque no estaban en el último inventario aplicado.{" "}
-            <Link href="/vendedor/productos?estado=BORRADOR" className="text-marca-azul underline">Ver</Link>
+            <Link href="/admin/inventario/ocultos" className="text-marca-azul underline">Revisarlos y volver a mostrar</Link>
           </p>
         )}
       </section>
@@ -135,6 +135,12 @@ export default async function CargaInventarioPage({ params }: Props) {
             columnas={["Stock", "PVP"]} celdas={(i) => [num(i.stock), formatoUSD(i.pvp)]} />
           <Lista id="retirados" titulo="Productos que ya no están (se agotaron o se dieron de baja)" vacio="No faltan productos." filas={cmp.retirados}
             columnas={["Stock antes", "PVP"]} celdas={(i) => [num(i.stock), formatoUSD(i.pvp)]} />
+          {cmp.retirados.length > 0 && (
+            <p className="-mt-2 px-1 text-sm text-marca-gris">
+              Al aplicar este inventario, los que ya no están se ocultan de la tienda (no se borran).{" "}
+              <Link href="/admin/inventario/ocultos" className="font-medium text-marca-azul underline">Revisar ocultos y volver a mostrar los que sí tienes</Link>
+            </p>
+          )}
           <Lista id="sube" titulo="Subió el stock" vacio="Ningún producto subió de stock." filas={cmp.subeStock}
             columnas={["Antes", "Ahora", "Diferencia"]} celdas={(c: Cambio) => [num(c.stockAntes), num(c.stockAhora), conSigno(c.stockAhora - c.stockAntes)]} />
           <Lista id="baja" titulo="Bajó el stock (ventas o salidas)" vacio="Ningún producto bajó de stock." filas={cmp.bajaStock}

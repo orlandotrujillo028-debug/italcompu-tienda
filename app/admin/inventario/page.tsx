@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChartColumn, ChevronRight } from "lucide-react";
+import { ChartColumn, ChevronRight, EyeOff } from "lucide-react";
 import { SubirInventario } from "@/components/admin/subir-inventario";
 import { Button } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth-guards";
+import { MOTIVO_OCULTO } from "@/lib/inventario/sincronizar";
 import { fechaEC, formatoUSD } from "@/lib/formato";
 import { prisma } from "@/lib/prisma";
 
@@ -13,6 +14,7 @@ const unidades = (n: number) => n.toLocaleString("es-EC", { maximumFractionDigit
 
 export default async function InventarioPage() {
   await requireRole("ADMIN");
+  const ocultos = await prisma.product.count({ where: { estado: "BORRADOR", motivoRechazo: MOTIVO_OCULTO } });
   const cargas = await prisma.inventarioCarga.findMany({
     orderBy: { createdAt: "desc" },
     take: 60,
@@ -41,9 +43,16 @@ export default async function InventarioPage() {
           </p>
         </div>
         {cargas.length > 0 && (
-          <Button asChild>
-            <Link href="/admin/inventario/reporte"><ChartColumn /> Reporte: reponer, márgenes y capital</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link href="/admin/inventario/ocultos">
+                <EyeOff /> Ocultos{ocultos > 0 ? ` (${ocultos})` : ""}
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/admin/inventario/reporte"><ChartColumn /> Reporte: reponer, márgenes y capital</Link>
+            </Button>
+          </div>
         )}
       </div>
 

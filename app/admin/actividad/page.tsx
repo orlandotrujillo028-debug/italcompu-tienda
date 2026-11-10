@@ -40,6 +40,8 @@ const ACCIONES: Record<string, string> = {
   "configuracion.editada": "Cambió configuración",
   "inventario.subido": "Subió inventario",
   "inventario.aplicado": "Aplicó inventario a la tienda",
+  "inventario.mostrados": "Mostró a mano productos ocultos por inventario",
+  "inventario.ocultado": "Volvió a ocultar un producto mostrado a mano",
   "inventario.eliminado": "Borró carga de inventario",
 };
 

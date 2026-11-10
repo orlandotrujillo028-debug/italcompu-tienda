@@ -167,6 +167,9 @@ model Product {
   // Precio para distribuidores aprobados, sin IVA (costo + utilidad_distribuidor). Nunca mayor que precioSinIva.
   precioDistribuidorSinIva Decimal @db.Decimal(10, 4)
   stock         Int            @default(0)
+  // true = el admin lo volvió a mostrar a mano aunque no esté en el Excel de la sucursal: el inventario
+  // no lo oculta ni cambia su stock hasta que vuelva a aparecer en un Excel (entonces se pone en false).
+  stockManual   Boolean        @default(false)
   estado        EstadoProducto @default(PENDIENTE)
   motivoRechazo String?
   destacado     Boolean        @default(false)

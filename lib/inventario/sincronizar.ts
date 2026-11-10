@@ -11,6 +11,8 @@
 //   con las utilidades por categoría (ver `reglas-precio.ts`). Sin costo → el PVP como respaldo.
 // - Producto de la tienda que NO está en el Excel → se oculta (BORRADOR, stock 0) con el motivo
 //   `MOTIVO_OCULTO`. Si vuelve a aparecer en un inventario posterior, se publica otra vez solo.
+//   Excepción: `stockManual = true` (el admin lo volvió a mostrar a mano en Admin → Inventario → Ocultos):
+//   no se oculta ni se toca su stock; cuando vuelve a aparecer en un Excel, el Excel manda otra vez.
 // - Categorías: se muestran las que tienen productos publicados y se ocultan las vacías.
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { CATEGORIAS, slugify } from "@/prisma/datos-base";
@@ -101,7 +103,9 @@ export async function vistaPrevia(db: PrismaClient, cargaId: string): Promise<Vi
   const [items, productos, reglas] = await Promise.all([
     db.inventarioItem.findMany({ where: { cargaId }, select: { codigo: true, stock: true, costo: true, pvp: true } }),
     db.product.findMany({
-      select: { codigo: true, stock: true, precioSinIva: true, precioDistribuidorSinIva: true, categoryId: true, estado: true, motivoRechazo: true },
+      select: {
+        codigo: true, stock: true, stockManual: true, precioSinIva: true, precioDistribuidorSinIva: true, categoryId: true, estado: true, motivoRechazo: true,
+      },
     }),
     leerReglasPrecio(db),
   ]);
@@ -122,7 +126,8 @@ export async function vistaPrevia(db: PrismaClient, cargaId: string): Promise<Vi
         r.actualizar++;
     }
   }
-  for (const p of productos) if (!enExcel.has(p.codigo) && !(p.estado === "BORRADOR" && p.motivoRechazo === MOTIVO_OCULTO)) r.ocultar++;
+  for (const p of productos)
+    if (!enExcel.has(p.codigo) && !p.stockManual && !(p.estado === "BORRADOR" && p.motivoRechazo === MOTIVO_OCULTO)) r.ocultar++;
   return r;
 }
 
@@ -180,6 +185,7 @@ export async function aplicarCarga(db: PrismaClient, cargaId: string): Promise<V
         "stock" = v.stock,
         "estado" = CASE WHEN p."estado" = 'BORRADOR' AND p."motivoRechazo" = ${MOTIVO_OCULTO} THEN 'PUBLICADO'::"EstadoProducto" ELSE p."estado" END,
         "motivoRechazo" = CASE WHEN p."motivoRechazo" = ${MOTIVO_OCULTO} THEN NULL ELSE p."motivoRechazo" END,
+        "stockManual" = false, -- volvió a aparecer en el Excel: el inventario manda otra vez
         "updatedAt" = now()
       FROM (VALUES ${Prisma.join(filas)}) AS v(codigo, stock)
       WHERE p."codigo" = v.codigo`;
@@ -188,12 +194,13 @@ export async function aplicarCarga(db: PrismaClient, cargaId: string): Promise<V
   // 3) Precios de todos con el costo de esta carga y la utilidad de su categoría.
   await recalcularPrecios(db, cargaId);
 
-  // 4) Ocultar lo que ya no está en el inventario.
+  // 4) Ocultar lo que ya no está en el inventario (salvo los que el admin mostró a mano).
   const codigos = items.map((i) => i.codigo);
   await db.$executeRaw`
     UPDATE "Product" SET "stock" = 0, "estado" = 'BORRADOR'::"EstadoProducto", "motivoRechazo" = ${MOTIVO_OCULTO},
       "destacado" = false, "updatedAt" = now()
     WHERE NOT ("codigo" = ANY(${codigos}::text[]))
+      AND NOT "stockManual"
       AND NOT ("estado" = 'BORRADOR' AND "motivoRechazo" IS NOT DISTINCT FROM ${MOTIVO_OCULTO})`;
 
   // 5) Mostrar solo las categorías con productos publicados (y sus categorías padre).
