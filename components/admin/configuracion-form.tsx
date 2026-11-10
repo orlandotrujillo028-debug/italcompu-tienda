@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Campo } from "@/components/auth/campo";
 import { guardarConfiguracion } from "@/app/admin/configuracion/actions";
 import { formatoUSD } from "@/lib/formato";
-import { calcularPrecio, precioDesdeCosto } from "@/lib/precios-calculo";
+import { calcularPrecio, precioDesdeCosto, sinIvaRedondeado } from "@/lib/precios-calculo";
 import { configuracionSchema, type ConfiguracionInput } from "@/lib/validaciones/configuracion";
 
 export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) {
@@ -25,8 +25,8 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
   const up = Number(watch("utilidad_publico")) || 0;
   const ud = Number(watch("utilidad_distribuidor")) || 0;
   const ejemplo = {
-    publico: calcularPrecio(precioDesdeCosto(100, up), { iva, esDistribuidor: false }).conIva,
-    distribuidor: calcularPrecio(precioDesdeCosto(100, ud), { iva, esDistribuidor: false }).conIva,
+    publico: calcularPrecio(sinIvaRedondeado(precioDesdeCosto(100, up), iva), { iva, esDistribuidor: false }).conIva,
+    distribuidor: calcularPrecio(sinIvaRedondeado(precioDesdeCosto(100, ud), iva), { iva, esDistribuidor: false }).conIva,
   };
   const cambiaIva = Number(watch("iva")) !== Number(valores.iva);
   const cambiaUtilidad = up !== Number(valores.utilidad_publico) || ud !== Number(valores.utilidad_distribuidor);
@@ -66,7 +66,7 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
           />
         </div>
         <p className="rounded-lg bg-marca-fondo p-3 text-sm">
-          Ejemplo: un producto que costó $100 (sin IVA) se verá a <strong className="text-marca-azul">{formatoUSD(ejemplo.publico)}</strong> para el público y a{" "}
+          Ejemplo: un producto que costó $100 (sin IVA, utilidad general) se verá a <strong className="text-marca-azul">{formatoUSD(ejemplo.publico)}</strong> para el público y a{" "}
           <strong className="text-marca-navy">{formatoUSD(ejemplo.distribuidor)}</strong> para distribuidores (precios con IVA).
         </p>
         {cambiaUtilidad && (

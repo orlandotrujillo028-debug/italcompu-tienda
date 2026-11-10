@@ -88,7 +88,16 @@ const aTarjeta = (p: FilaTarjeta): ProductoTarjeta => ({
 const PUBLICADO = { estado: "PUBLICADO" } as const;
 // Primero los que tienen stock, luego destacados, luego los más nuevos.
 const ordenVitrina: Prisma.ProductOrderByWithRelationInput[] = [{ destacado: "desc" }, { createdAt: "desc" }];
-const conStockPrimero = (lista: ProductoTarjeta[]) => [...lista].sort((a, b) => Number(b.stock > 0) - Number(a.stock > 0));
+
+/** Hasta `take` productos: primero los que tienen stock y, si faltan, se completa con los que no. */
+async function conStockPrimero(where: Prisma.ProductWhereInput, orderBy: Prisma.ProductOrderByWithRelationInput[], take: number) {
+  const conStock = await prisma.product.findMany({ where: { AND: [where, { stock: { gt: 0 } }] }, orderBy, take, select: seleccionTarjeta });
+  const sinStock =
+    conStock.length < take
+      ? await prisma.product.findMany({ where: { AND: [where, { stock: { lte: 0 } }] }, orderBy, take: take - conStock.length, select: seleccionTarjeta })
+      : [];
+  return [...conStock, ...sinStock].map(aTarjeta);
+}
 
 /** Categorías que tienen su propia vitrina en la home (en este orden). */
 const SECCIONES_HOME = ["laptops", "computadores", "componentes", "almacenamiento", "monitores", "impresion", "perifericos"];
@@ -97,8 +106,8 @@ const SECCIONES_HOME = ["laptops", "computadores", "componentes", "almacenamient
 export const getVitrinasHome = unstable_cache(
   async () => {
     const [destacados, nuevos, categorias] = await Promise.all([
-      prisma.product.findMany({ where: { ...PUBLICADO, destacado: true }, orderBy: { createdAt: "desc" }, take: 12, select: seleccionTarjeta }),
-      prisma.product.findMany({ where: { ...PUBLICADO, nuevo: true }, orderBy: { createdAt: "desc" }, take: 12, select: seleccionTarjeta }),
+      conStockPrimero({ ...PUBLICADO, destacado: true }, [{ createdAt: "desc" }], 12),
+      conStockPrimero({ ...PUBLICADO, nuevo: true }, [{ createdAt: "desc" }], 12),
       prisma.category.findMany({
         where: { slug: { in: SECCIONES_HOME }, activa: true },
         select: {
@@ -115,19 +124,14 @@ export const getVitrinasHome = unstable_cache(
       SECCIONES_HOME.map(async (slug) => {
         const cat = categorias.find((c) => c.slug === slug);
         if (!cat) return null;
-        const productos = await prisma.product.findMany({
-          where: { ...PUBLICADO, OR: [{ categoryId: cat.id }, { category: { parentId: cat.id } }] },
-          orderBy: ordenVitrina,
-          take: 10,
-          select: seleccionTarjeta,
-        });
-        return productos.length ? { ...cat, productos: conStockPrimero(productos.map(aTarjeta)) } : null;
+        const productos = await conStockPrimero({ ...PUBLICADO, OR: [{ categoryId: cat.id }, { category: { parentId: cat.id } }] }, ordenVitrina, 10);
+        return productos.length ? { ...cat, productos } : null;
       }),
     );
 
     return {
-      destacados: conStockPrimero(destacados.map(aTarjeta)),
-      nuevos: conStockPrimero(nuevos.map(aTarjeta)),
+      destacados,
+      nuevos,
       secciones: secciones.filter((s) => s !== null),
     };
   },

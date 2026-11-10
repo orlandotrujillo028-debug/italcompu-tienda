@@ -16,6 +16,21 @@ export const precioDesdeCosto = (costo: number, utilidadPublico: number) =>
   Math.round(costo * (1 + utilidadPublico / 100) * 10_000) / 10_000;
 
 /**
+ * Redondeo comercial del precio CON IVA, siempre hacia arriba (decisión del dueño, 11-nov-2026):
+ * menos de $20 → al siguiente 0,10 · de $20 a $100 → al siguiente 0,50 · desde $100 → al siguiente dólar.
+ * 8,82 → 8,90 · 27,30 → 27,50 · 879,43 → 880,00. Un precio que ya cumple (8,90) no cambia.
+ */
+export function redondeoComercial(conIva: number) {
+  const centavos = Math.round(Number((conIva * 100).toPrecision(12)));
+  const paso = centavos < 2000 ? 10 : centavos < 10000 ? 50 : 100;
+  return (Math.ceil(centavos / paso) * paso) / 100;
+}
+
+/** Precio SIN IVA (4 decimales) cuyo precio con IVA queda redondeado con `redondeoComercial`. */
+export const sinIvaRedondeado = (sinIva: number, iva: number) =>
+  Math.round((redondeoComercial(sinIva * (1 + iva / 100)) / (1 + iva / 100)) * 10_000) / 10_000;
+
+/**
  * % que baja el precio público para que el distribuidor pague costo + su utilidad.
  * Con 35 % público y 25 % distribuidor: 1 − 1,25 ÷ 1,35 = 7,407… % (se guarda sin redondear
  * para que el precio de distribuidor dé exactamente costo × 1,25).

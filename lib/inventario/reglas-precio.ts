@@ -6,10 +6,11 @@
 //                 (Setting `utilidad_publico`, 35 %).
 // - Distribuidor: costo × (1 + `utilidad_distribuidor` %) — igual para todas las categorías (25 %).
 //                 Nunca más caro que el público.
+// - Redondeo comercial del precio con IVA, hacia arriba (`redondeoComercial`): < $20 → 0,10; < $100 → 0,50; si no → $1.
 // - Sin costo (producto creado a mano en el panel o costo 0 en el Excel): se parte del precio público y
 //   se deduce el costo con la utilidad de su categoría.
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { precioDesdeCosto } from "@/lib/precios-calculo";
+import { precioDesdeCosto, sinIvaRedondeado } from "@/lib/precios-calculo";
 
 export const UTILIDAD_PUBLICO_POR_DEFECTO = 35;
 export const UTILIDAD_DISTRIBUIDOR_POR_DEFECTO = 25;
@@ -48,15 +49,15 @@ export async function leerReglasPrecio(db: Db) {
     return utilidadPublico;
   };
 
-  /** Precio de distribuidor a partir del público (cuando no hay costo). */
+  /** Precio de distribuidor a partir del público (cuando no hay costo), con redondeo comercial. */
   const distribuidorDesdePublico = (publico: number, categoryId: string | null | undefined) =>
-    Math.min(publico, redondear4((publico * (1 + utilidadDistribuidor / 100)) / (1 + utilidadDe(categoryId) / 100)));
+    Math.min(publico, sinIvaRedondeado(redondear4((publico * (1 + utilidadDistribuidor / 100)) / (1 + utilidadDe(categoryId) / 100)), iva));
 
-  /** Precios sin IVA (público y distribuidor) de un producto. */
+  /** Precios sin IVA (público y distribuidor) de un producto. Desde el costo, con redondeo comercial del precio con IVA. */
   const precios = (categoryId: string | null | undefined, costo: number, pvpConIva: number) => {
     if (costo > 0) {
-      const publico = precioDesdeCosto(costo, utilidadDe(categoryId));
-      return { publico, distribuidor: Math.min(publico, precioDesdeCosto(costo, utilidadDistribuidor)) };
+      const publico = sinIvaRedondeado(precioDesdeCosto(costo, utilidadDe(categoryId)), iva);
+      return { publico, distribuidor: Math.min(publico, sinIvaRedondeado(precioDesdeCosto(costo, utilidadDistribuidor), iva)) };
     }
     const publico = pvpASinIva(pvpConIva, iva);
     return { publico, distribuidor: distribuidorDesdePublico(publico, categoryId) };

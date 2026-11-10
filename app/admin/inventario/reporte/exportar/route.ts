@@ -19,18 +19,19 @@ export async function GET(req: NextRequest) {
   const base = (f: FilaReporte) => [celdaCsv(f.codigo), celdaCsv(f.nombre), celdaCsv(f.categoria), numeroCsv(f.stock, 3)];
   const precios = (f: FilaReporte) => [numeroCsv(f.costo, 4), numeroCsv(f.pvp), numeroCsv(f.margen * 100, 1)];
   const enc = ["Código", "Producto", "Categoría (sistema)", "Stock"];
-  const encPrecios = ["Costo unitario sin IVA", "PVP con IVA", "Margen %"];
+  const encPrecios = ["Costo unitario sin IVA", "Precio tienda con IVA", "Margen %"];
 
   let encabezado: string[];
   let filas: string[][];
   if (lista === "reponer") {
     encabezado = [...enc, "Stock carga anterior", "Situación", ...encPrecios];
     filas = [
-      ...r.agotados.map((f) => [...base(f), numeroCsv(f.stockAnterior ?? 0, 3), "Agotado (ya no está en el Excel)", ...precios(f)]),
+      ...r.agotados.map((f) => [...base(f), numeroCsv(f.stockAnterior ?? 0, 3), `Se agotó: ${f.motivo ?? ""}`, ...precios(f)]),
       ...r.stockBajo.map((f) => [...base(f), f.stockAnterior === null ? "" : numeroCsv(f.stockAnterior, 3), "Stock bajo", ...precios(f)]),
+      ...r.sinStock.map((f) => [...base(f), f.stockAnterior === null ? "" : numeroCsv(f.stockAnterior, 3), f.stockAnterior === null ? "Sin stock (llegó sin unidades)" : "Sin stock (ya estaba en 0)", ...precios(f)]),
     ];
   } else if (lista === "margenes") {
-    encabezado = [...enc, ...encPrecios, "PVP sin IVA", "Ganancia por unidad"];
+    encabezado = [...enc, ...encPrecios, "Precio tienda sin IVA", "Ganancia por unidad"];
     filas = [...r.pierden, ...r.margenBajo].map((f) => [...base(f), ...precios(f), numeroCsv(f.pvpSinIva, 4), numeroCsv(f.pvpSinIva - f.costo, 4)]);
   } else if (lista === "sin-movimiento") {
     encabezado = [...enc, "Días sin movimiento", "Capital a costo", ...encPrecios];

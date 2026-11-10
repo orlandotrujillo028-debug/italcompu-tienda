@@ -127,18 +127,30 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
           : [{ destacado: "desc" }, { nuevo: "desc" }, { createdAt: "desc" }];
 
   // Primero el total, para no pedir una página que no existe (?page=99 → última página).
-  const total = await prisma.product.count({ where });
+  // Los productos CON stock van siempre antes que los sin stock (en cualquier orden elegido):
+  // se cuentan aparte y cada página toma de un grupo y, si no alcanza, del otro.
+  const whereConStock: Prisma.ProductWhereInput = { AND: [where, { stock: { gt: 0 } }] };
+  const whereSinStock: Prisma.ProductWhereInput = { AND: [where, { stock: { lte: 0 } }] };
+  const [total, totalConStock] = await Promise.all([prisma.product.count({ where }), prisma.product.count({ where: whereConStock })]);
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
   const pagina = Math.min(f.pagina, paginas);
+  const desde = (pagina - 1) * POR_PAGINA;
+  const deConStock = Math.max(0, Math.min(POR_PAGINA, totalConStock - desde));
+  const orden = [...orderBy, { id: "asc" as const }]; // id: orden estable entre páginas
 
-  const [filas, gruposMarca, gruposSub, rango] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy: [...orderBy, { id: "asc" }], // id: orden estable entre páginas
-      skip: (pagina - 1) * POR_PAGINA,
-      take: POR_PAGINA,
-      select: seleccionTarjeta,
-    }),
+  const [conStock, sinStock, gruposMarca, gruposSub, rango] = await Promise.all([
+    deConStock > 0
+      ? prisma.product.findMany({ where: whereConStock, orderBy: orden, skip: desde, take: deConStock, select: seleccionTarjeta })
+      : Promise.resolve([]),
+    deConStock < POR_PAGINA
+      ? prisma.product.findMany({
+          where: whereSinStock,
+          orderBy: orden,
+          skip: Math.max(0, desde - totalConStock),
+          take: POR_PAGINA - deConStock,
+          select: seleccionTarjeta,
+        })
+      : Promise.resolve([]),
     prisma.product.groupBy({ by: ["brandId"], where: whereMarcas, _count: { _all: true } }),
     ctx.facetaSubcategorias
       ? prisma.product.groupBy({ by: ["categoryId"], where: whereSubs, _count: { _all: true } })
@@ -161,7 +173,7 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
       : Promise.resolve([]),
   ]);
 
-  const productos: ProductoTarjeta[] = filas.map((p) => ({
+  const productos: ProductoTarjeta[] = [...conStock, ...sinStock].map((p) => ({
     id: p.id,
     slug: p.slug,
     nombre: p.nombre,

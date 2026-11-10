@@ -19,14 +19,14 @@ export function Galeria({ imagenes, nombre, agotado }: { imagenes: string[]; nom
             fill
             priority
             sizes="(max-width: 1024px) 100vw, 560px"
-            className={`object-contain p-6 ${agotado ? "opacity-60 grayscale" : ""}`}
+            className="object-contain p-6"
           />
         ) : (
           <span className="flex h-full items-center justify-center text-marca-gris">
             <ImageOff className="size-16" />
           </span>
         )}
-        {agotado && <span className="absolute top-3 left-3 rounded bg-destructive px-2.5 py-1 text-xs font-bold text-white">Agotado</span>}
+        {agotado && <span className="absolute top-3 left-3 rounded bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">Consultar disponibilidad</span>}
       </div>
 
       {imagenes.length > 1 && (

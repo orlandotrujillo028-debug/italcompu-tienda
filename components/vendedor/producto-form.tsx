@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Campo } from "@/components/auth/campo";
 import { firmarSubidaImagen, guardarProducto } from "@/app/vendedor/productos/actions";
 import { formatoPct, formatoUSD } from "@/lib/formato";
-import { calcularPrecio } from "@/lib/precios-calculo";
+import { calcularPrecio, sinIvaRedondeado } from "@/lib/precios-calculo";
 import { productoSchema, urlImagenPermitida, type ProductoInput } from "@/lib/validaciones/producto";
 
 type Categoria = { id: string; nombre: string; children: { id: string; nombre: string; utilidad: number }[] };
@@ -53,7 +53,8 @@ export function ProductoForm({ id, inicial, categorias, marcas, config, esAdmin 
   const precio = Number(String(watch("precioSinIva") ?? "").replace(",", ".")) || 0;
   // Distribuidor: se deduce el costo con la utilidad de la subcategoría elegida y se le suma la suya (igual que en el servidor).
   const utilidad = subcategorias.find((s) => s.id === watch("categoryId"))?.utilidad ?? null;
-  const precioDistribuidorSinIva = utilidad === null ? precio : Math.min(precio, (precio * (1 + config.utilidadDistribuidor / 100)) / (1 + utilidad / 100));
+  const precioDistribuidorSinIva =
+    utilidad === null ? precio : Math.min(precio, sinIvaRedondeado((precio * (1 + config.utilidadDistribuidor / 100)) / (1 + utilidad / 100), config.iva));
   const publico = calcularPrecio(precio, { iva: config.iva, esDistribuidor: false });
   const distribuidor = calcularPrecio({ precioSinIva: precio, precioDistribuidorSinIva }, { iva: config.iva, esDistribuidor: true });
 

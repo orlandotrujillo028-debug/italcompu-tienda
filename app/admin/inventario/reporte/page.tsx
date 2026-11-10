@@ -41,7 +41,7 @@ export default async function ReporteInventarioPage({ searchParams }: Props) {
     ),
   };
   const colCosto: Columna = { titulo: "Costo", valor: (f) => formatoUSD(f.costo) };
-  const colPvp: Columna = { titulo: "PVP", valor: (f) => formatoUSD(f.pvp) };
+  const colPvp: Columna = { titulo: "Precio tienda", valor: (f) => formatoUSD(f.pvp) };
 
   return (
     <div className="space-y-6">
@@ -74,18 +74,18 @@ export default async function ReporteInventarioPage({ searchParams }: Props) {
       {/* Resumen */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Dato titulo="Capital a costo" valor={formatoUSD(resumen.totalCosto)} nota={`${resumen.productos} productos · ${num(resumen.unidades)} u.`} />
-        <Dato titulo="Venta potencial (sin IVA)" valor={formatoUSD(resumen.totalVenta)} nota="si se vende todo a PVP" />
+        <Dato titulo="Venta potencial (sin IVA)" valor={formatoUSD(resumen.totalVenta)} nota="si se vende todo a precio de la tienda" />
         <Dato titulo="Ganancia potencial" valor={formatoUSD(resumen.gananciaPotencial)} nota={`margen promedio ${pct(resumen.margenPromedio)}`} />
-        <Dato titulo="Por reponer" valor={String(resumen.porReponer)} nota={`stock ≤ ${op.stockMinimo} o agotados`} alerta={resumen.porReponer > 0} href="#reponer" />
+        <Dato titulo="Por reponer" valor={String(resumen.porReponer)} nota={`se agotaron o stock ≤ ${op.stockMinimo}`} alerta={resumen.porReponer > 0} href="#reponer" />
         <Dato titulo="Bajo el costo" valor={String(resumen.pierden)} nota="se venden perdiendo" alerta={resumen.pierden > 0} href="#margenes" />
       </div>
 
       {/* Por reponer */}
       <Seccion id="reponer" icono={<PackageSearch />} titulo="Por reponer" descarga={exportar("reponer")}
-        texto={`Productos que se agotaron desde la carga anterior y productos con ${op.stockMinimo === 0 ? "stock 0" : `stock de ${op.stockMinimo} o menos`}. Primero los que más se vendieron.`}>
+        texto={`Productos que se agotaron desde la carga anterior (tenían stock y ahora vienen con 0 o ya no vienen en el Excel) y productos con ${op.stockMinimo === 0 ? "poco stock" : `stock de 1 a ${op.stockMinimo}`}. Primero los que más se vendieron.`}>
         {r.agotados.length > 0 && (
-          <Tabla titulo={`Se agotaron (ya no aparecen en el Excel) · ${r.agotados.length}`} filas={r.agotados}
-            columnas={[{ titulo: "Stock antes", valor: (f) => num(f.stockAnterior ?? 0) }, colCosto, colPvp]} />
+          <Tabla titulo={`Se agotaron desde la carga anterior · ${r.agotados.length}`} filas={r.agotados}
+            columnas={[{ titulo: "Stock antes", valor: (f) => num(f.stockAnterior ?? 0) }, { titulo: "Situación", valor: (f) => f.motivo ?? "" }, colCosto, colPvp]} />
         )}
         <Tabla titulo={`Stock bajo · ${r.stockBajo.length}`} filas={r.stockBajo} vacio="Ningún producto tiene stock bajo."
           columnas={[
@@ -94,15 +94,21 @@ export default async function ReporteInventarioPage({ searchParams }: Props) {
             colCosto, colPvp,
           ]} />
         {r.anterior && <p className="text-xs text-marca-gris">* Vendido = bajó el stock entre la carga anterior y esta (ventas u otras salidas).</p>}
+        {r.sinStock.length > 0 && (
+          <p className="rounded-lg bg-marca-fondo p-3 text-sm text-marca-gris">
+            Además hay <strong className="text-marca-navy">{r.sinStock.length} productos sin stock</strong> que ya estaban en 0 o llegaron al Excel sin
+            unidades. En la tienda se muestran con “Consultar disponibilidad”. Vienen en la descarga de esta lista.
+          </p>
+        )}
       </Seccion>
 
       {/* Márgenes */}
       <Seccion id="margenes" icono={<TrendingDown />} titulo="Alertas de precio" descarga={exportar("margenes")}
-        texto={`Margen = (PVP sin IVA − costo) ÷ PVP sin IVA. En rojo los que se venden por debajo del costo; en amarillo los que ganan menos del ${op.margenMinimo} %.`}>
+        texto={`Margen = (precio de la tienda sin IVA − costo) ÷ precio sin IVA. El precio de la tienda es costo + utilidad de su categoría, redondeado. En rojo los que se venden por debajo del costo; en amarillo los que ganan menos del ${op.margenMinimo} %.`}>
         <Tabla titulo={`Se venden por debajo del costo · ${r.pierden.length}`} filas={r.pierden} vacio="Ningún producto se vende bajo el costo. 👍"
-          columnas={[colCosto, { titulo: "PVP sin IVA", valor: (f) => formatoUSD(f.pvpSinIva) }, colPvp, colMargen]} />
+          columnas={[colCosto, { titulo: "Precio sin IVA", valor: (f) => formatoUSD(f.pvpSinIva) }, colPvp, colMargen]} />
         <Tabla titulo={`Margen menor al ${op.margenMinimo} % · ${r.margenBajo.length}`} filas={r.margenBajo} vacio="Ninguno."
-          columnas={[colCosto, { titulo: "PVP sin IVA", valor: (f) => formatoUSD(f.pvpSinIva) }, colPvp, colMargen]} />
+          columnas={[colCosto, { titulo: "Precio sin IVA", valor: (f) => formatoUSD(f.pvpSinIva) }, colPvp, colMargen]} />
       </Seccion>
 
       {/* Sin movimiento */}

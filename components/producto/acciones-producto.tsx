@@ -5,22 +5,17 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingCart, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { BotonConsultar } from "@/components/producto/boton-consultar";
 import { useCarrito } from "@/lib/carrito-store";
 
 /** Selector de cantidad + "Agregar al carrito" + "Comprar ahora". */
-export function AccionesProducto({ productId, nombre, stock }: { productId: string; nombre: string; stock: number }) {
+export function AccionesProducto({ productId, codigo, nombre, stock }: { productId: string; codigo: string; nombre: string; stock: number }) {
   const max = Math.min(stock, 99);
   const [cantidad, setCantidad] = useState(1);
   const agregar = useCarrito((s) => s.agregar);
   const router = useRouter();
 
-  if (stock <= 0) {
-    return (
-      <Button size="lg" variant="outline" className="h-11 w-full" disabled>
-        Producto agotado
-      </Button>
-    );
-  }
+  if (stock <= 0) return <BotonConsultar codigo={codigo} grande />;
 
   const cambiar = (n: number) => setCantidad(Math.max(1, Math.min(max, Number.isFinite(n) ? Math.floor(n) : 1)));
 

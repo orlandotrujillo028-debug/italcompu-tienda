@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ImageOff } from "lucide-react";
 import { BotonComprar } from "@/components/producto/boton-comprar";
+import { BotonConsultar } from "@/components/producto/boton-consultar";
 import { BotonDeseo } from "@/components/producto/boton-deseo";
 import { Precio } from "@/components/producto/precio";
 import type { ProductoTarjeta } from "@/lib/catalogo";
@@ -33,7 +34,7 @@ export function ProductCard({
               fill
               priority={prioridad}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
-              className={`object-contain p-3 transition group-hover:scale-105 ${agotado ? "opacity-50 grayscale" : ""}`}
+              className="object-contain p-3 transition group-hover:scale-105"
             />
           ) : (
             <span className="flex h-full items-center justify-center text-marca-gris">
@@ -43,7 +44,7 @@ export function ProductCard({
         </Link>
 
         <div className="pointer-events-none absolute top-2 left-2 flex flex-col items-start gap-1">
-          {agotado && <span className="rounded bg-destructive px-2 py-0.5 text-[11px] font-bold text-white">Agotado</span>}
+          {agotado && <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-900">Consultar stock</span>}
           {producto.nuevo && <span className="rounded bg-marca-cyan px-2 py-0.5 text-[11px] font-bold text-marca-navy">Nuevo</span>}
           {producto.destacado && <span className="rounded bg-marca-navy px-2 py-0.5 text-[11px] font-bold text-white">Destacado</span>}
         </div>
@@ -61,7 +62,7 @@ export function ProductCard({
         <p className="text-xs text-marca-gris">Código: {producto.codigo}</p>
         <div className="mt-auto space-y-2.5 pt-1">
           <Precio producto={producto} tarifa={tarifa} />
-          <BotonComprar productId={producto.id} nombre={producto.nombre} agotado={agotado} />
+          {agotado ? <BotonConsultar codigo={producto.codigo} /> : <BotonComprar productId={producto.id} nombre={producto.nombre} />}
         </div>
       </div>
     </article>

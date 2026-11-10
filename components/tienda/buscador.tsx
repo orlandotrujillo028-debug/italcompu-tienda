@@ -177,7 +177,7 @@ export function Buscador({ className = "" }: { className?: string }) {
                 </span>
                 <span className="text-right">
                   <span className="block text-sm font-bold text-marca-azul">{formatoUSD(p.precio)}</span>
-                  {p.agotado && <span className="text-xs text-destructive">Agotado</span>}
+                  {p.agotado && <span className="text-xs text-amber-800">Consultar stock</span>}
                 </span>
               </button>
             );

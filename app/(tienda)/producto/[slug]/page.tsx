@@ -215,14 +215,18 @@ export default async function ProductoPage({ params }: Props) {
             </dl>
           </div>
 
-          <p className={`flex items-center gap-2 text-sm font-medium ${agotado ? "text-destructive" : p.stock <= 5 ? "text-amber-700" : "text-emerald-700"}`}>
-            {agotado ? <AlertTriangle className="size-4" /> : <CheckCircle2 className="size-4" />}
-            {agotado ? "Agotado por el momento" : p.stock <= 5 ? `¡Últimas ${p.stock} unidades!` : `Disponible (${p.stock} unidades)`}
+          <p className={`flex items-start gap-2 text-sm font-medium ${agotado ? "text-amber-800" : p.stock <= 5 ? "text-amber-700" : "text-emerald-700"}`}>
+            {agotado ? <AlertTriangle className="mt-0.5 size-4 shrink-0" /> : <CheckCircle2 className="mt-0.5 size-4 shrink-0" />}
+            {agotado
+              ? "Sin stock en este momento. Escríbenos y te confirmamos si lo tenemos en otra sucursal o cuándo llega."
+              : p.stock <= 5
+                ? `¡Últimas ${p.stock} unidades!`
+                : `Disponible (${p.stock} unidades)`}
           </p>
 
-          <AccionesProducto productId={p.id} nombre={p.nombre} stock={p.stock} />
+          <AccionesProducto productId={p.id} codigo={p.codigo} nombre={p.nombre} stock={p.stock} />
 
-          {whatsapp && (
+          {whatsapp && !agotado && (
             <a
               href={whatsapp}
               target="_blank"

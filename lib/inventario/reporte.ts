@@ -3,13 +3,15 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * Informe de gestión del inventario de la sucursal (última carga subida):
- * - Por reponer: stock bajo + productos que se agotaron desde la carga anterior (el sistema
- *   contable solo exporta productos con stock, así que un agotado "desaparece" del Excel).
- * - Márgenes: productos vendidos por debajo del costo o con margen menor al mínimo.
+ * - Por reponer: productos que se AGOTARON desde la carga anterior (tenían stock y ahora vienen con 0
+ *   o ya no vienen en el Excel) + stock bajo (más de 0 y hasta el mínimo). Los que ya estaban en 0
+ *   (o llegaron sin unidades) van aparte en "Sin stock".
+ * - Márgenes: con el PRECIO DE LA TIENDA (costo + utilidad, redondeado), no con el PVP del Excel.
  * - Sin movimiento: mismo stock durante al menos N días según el historial de cargas (mercadería quieta).
  * - Capital: dónde está invertido el dinero (costo × stock).
  *
- * Margen = (PVP sin IVA − costo) / PVP sin IVA. El PVP del Excel incluye IVA; el costo no.
+ * Margen = (precio tienda sin IVA − costo) / precio tienda sin IVA. Si el producto no existe en la tienda,
+ * se usa el PVP del Excel (incluye IVA). El costo nunca incluye IVA.
  */
 
 export type FilaReporte = {
@@ -19,8 +21,9 @@ export type FilaReporte = {
   stock: number;
   stockAnterior: number | null; // en la carga anterior (null = no estaba)
   costo: number;
-  pvp: number; // con IVA
+  pvp: number; // precio de la TIENDA con IVA (o PVP del Excel si no está en la tienda)
   pvpSinIva: number;
+  motivo?: string; // en "agotados": por qué
   margen: number; // 0,25 = 25 %
   capital: number; // costo × stock
   diasSinMovimiento?: number;
@@ -41,7 +44,7 @@ export async function generarReporte(op: OpcionesReporte) {
     orderBy: { createdAt: "desc" },
     select: { id: true, createdAt: true },
   });
-  const [ivaFila, items, cambios] = await Promise.all([
+  const [ivaFila, items, cambios, productos] = await Promise.all([
     prisma.setting.findUnique({ where: { clave: "iva" } }),
     prisma.inventarioItem.findMany({
       where: { cargaId: { in: cargas.slice(0, 2).map((c) => c.id) } }, // la actual y la anterior
@@ -56,7 +59,10 @@ export async function generarReporte(op: OpcionesReporte) {
             AND NOT EXISTS (SELECT 1 FROM "InventarioItem" i
               WHERE i."cargaId" = c."id" AND i."codigo" = a."codigo" AND i."stock" = a."stock")) AS "ultimoCambio"
       FROM "InventarioItem" a WHERE a."cargaId" = ${ultima.id}`,
+    // Precio público actual de la tienda (sin IVA) de cada producto.
+    prisma.product.findMany({ select: { codigo: true, precioSinIva: true } }),
   ]);
+  const precioTienda = new Map(productos.map((p) => [p.codigo, Number(p.precioSinIva)]));
   const iva = Number.isFinite(Number(ivaFila?.valor)) ? Number(ivaFila?.valor) : 15;
 
   // Stock de cada producto en la carga actual (0) y la anterior (1).
@@ -66,8 +72,9 @@ export async function generarReporte(op: OpcionesReporte) {
   const aFila = (i: (typeof items)[number], stockActual: number | null): FilaReporte => {
     const stock = stockActual ?? Number(i.stock);
     const costo = Number(i.costo);
-    const pvp = Number(i.pvp);
-    const pvpSinIva = pvp / (1 + iva / 100);
+    const tienda = precioTienda.get(i.codigo);
+    const pvpSinIva = tienda !== undefined && tienda > 0 ? tienda : Number(i.pvp) / (1 + iva / 100);
+    const pvp = Math.round(pvpSinIva * (1 + iva / 100) * 100) / 100;
     return {
       codigo: i.codigo,
       nombre: i.nombre,
@@ -83,15 +90,26 @@ export async function generarReporte(op: OpcionesReporte) {
   };
 
   const actuales = items.filter((i) => i.cargaId === ultima.id).map((i) => aFila(i, null));
-  const codigosActuales = new Set(actuales.map((f) => f.codigo));
   const porNombre = (a: FilaReporte, b: FilaReporte) => a.nombre.localeCompare(b.nombre, "es");
   const vendido = (f: FilaReporte) => (f.stockAnterior ?? f.stock) - f.stock;
 
   // Por reponer
-  const agotados = anterior.filter((i) => !codigosActuales.has(i.codigo)).map((i) => aFila(i, 0)).sort(porNombre);
+  // Se agotaron = en la carga anterior tenían stock y ahora vienen con 0 o ya no vienen en el Excel.
+  const actualesPorCodigo = new Map(actuales.map((f) => [f.codigo, f]));
+  const agotados = anterior
+    .filter((i) => Number(i.stock) > 0)
+    .flatMap((i) => {
+      const ahora = actualesPorCodigo.get(i.codigo);
+      if (!ahora) return [{ ...aFila(i, 0), motivo: "Ya no viene en el Excel" }];
+      return ahora.stock <= 0 ? [{ ...ahora, motivo: "Ahora con stock 0" }] : [];
+    })
+    .sort(porNombre);
+  const codigosAgotados = new Set(agotados.map((f) => f.codigo));
   const stockBajo = actuales
-    .filter((f) => f.stock <= op.stockMinimo)
+    .filter((f) => f.stock > 0 && f.stock <= op.stockMinimo)
     .sort((a, b) => vendido(b) - vendido(a) || a.stock - b.stock || porNombre(a, b));
+  // Sin stock que NO se agotó ahora: ya estaba en 0 o llegó al Excel sin unidades.
+  const sinStock = actuales.filter((f) => f.stock <= 0 && !codigosAgotados.has(f.codigo)).sort(porNombre);
 
   // Márgenes
   const pierden = actuales.filter((f) => f.margen < 0).sort((a, b) => a.margen - b.margen);
@@ -128,7 +146,7 @@ export async function generarReporte(op: OpcionesReporte) {
       productos: actuales.length,
       unidades: actuales.reduce((s, f) => s + f.stock, 0),
       totalCosto,
-      totalVenta, // a PVP sin IVA
+      totalVenta, // a precio de la tienda sin IVA
       gananciaPotencial: totalVenta - totalCosto,
       margenPromedio: totalVenta > 0 ? (totalVenta - totalCosto) / totalVenta : 0,
       porReponer: stockBajo.length + agotados.length,
@@ -136,6 +154,7 @@ export async function generarReporte(op: OpcionesReporte) {
     },
     agotados,
     stockBajo,
+    sinStock,
     pierden,
     margenBajo,
     sinMovimiento,
