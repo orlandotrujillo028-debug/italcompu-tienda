@@ -1,3 +1,4 @@
+import { formatoPct } from "@/lib/formato";
 import Link from "next/link";
 import { ArrowRight, BadgePercent, CreditCard, ShieldCheck, Store, Truck } from "lucide-react";
 
@@ -36,7 +37,7 @@ export function InvitacionDistribuidor({ descuento }: { descuento: number }) {
           <h2 className="text-xl font-bold sm:text-2xl">¿Tienes un local de tecnología?</h2>
           <p className="mt-1 max-w-xl text-white/90">
             Regístrate como distribuidor y compra todo el catálogo
-            {descuento > 0 ? ` con ${descuento} % de descuento` : " a precio especial"}.
+            {descuento > 0 ? ` con ${formatoPct(descuento)} % de descuento` : " a precio especial"}.
           </p>
         </div>
         <Link

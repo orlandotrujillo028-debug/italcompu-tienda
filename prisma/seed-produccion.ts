@@ -12,7 +12,8 @@ const prisma = new PrismaClient();
 // Configuración inicial. Los datos de contacto quedan VACÍOS: complétalos en Admin → Configuración.
 const CONFIGURACION: Record<string, string> = {
   iva: "15",
-  descuento_distribuidor: "10",
+  utilidad_publico: "35",
+  utilidad_distribuidor: "25",
   costo_envio: "5",
   envio_gratis_desde: "300",
   whatsapp: "",

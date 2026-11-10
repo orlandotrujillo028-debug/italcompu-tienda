@@ -17,12 +17,12 @@ const MAX_BYTES = 8 * 1024 * 1024;
 export async function subirInventario(_prev: EstadoSubida, formData: FormData): Promise<EstadoSubida> {
   const admin = await requireRole("ADMIN");
   const archivo = formData.get("archivo");
-  if (!(archivo instanceof File) || archivo.size === 0) return { error: "Elige el archivo de inventario (.xls)." };
+  if (!(archivo instanceof File) || archivo.size === 0) return { error: "Elige el archivo de inventario (.xls o .xlsx)." };
   if (archivo.size > MAX_BYTES) return { error: "El archivo pesa más de 8 MB." };
 
   let id: string;
   try {
-    const leido = leerInventarioExcel(await archivo.text());
+    const leido = leerInventarioExcel(Buffer.from(await archivo.arrayBuffer()));
     id = await guardarCarga(prisma, leido, archivo.name, admin.id);
     await registrarActividad(admin.id, "inventario.subido", `${archivo.name} · ${leido.filas.length} productos · ${leido.sucursal}`);
   } catch (e) {

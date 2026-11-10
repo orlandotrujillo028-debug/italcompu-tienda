@@ -17,7 +17,7 @@ const prisma = new PrismaClient({ transactionOptions: { maxWait: 10_000, timeout
 async function main() {
   const ruta = process.argv[2];
   if (!ruta) throw new Error('Indica el archivo: npm run inventario:reemplazar -- "C:\\ruta\\inventario.xls"');
-  const leido = leerInventarioExcel(readFileSync(ruta, "utf8"));
+  const leido = leerInventarioExcel(readFileSync(ruta));
   const [productos, pedidos] = await Promise.all([prisma.product.count(), prisma.order.count()]);
   const host = (process.env.DATABASE_URL ?? "").match(/@([^/:?]+)/)?.[1] ?? "?";
 

@@ -7,11 +7,14 @@
 //   deducidos por `clasificar.ts`. El nombre, la categoría, la marca, fotos y descripción que luego
 //   edites en el panel NO se pisan en las siguientes cargas.
 // - Producto que ya existe (mismo código) → solo se actualizan stock y precio.
+// - Precio (decisión del dueño, 10-nov-2026): NO se usa el PVP del Excel. Precio público sin IVA =
+//   costo × (1 + utilidad_publico %). Si un producto viene sin costo, se usa su PVP como respaldo.
 // - Producto de la tienda que NO está en el Excel → se oculta (BORRADOR, stock 0) con el motivo
 //   `MOTIVO_OCULTO`. Si vuelve a aparecer en un inventario posterior, se publica otra vez solo.
 // - Categorías: se muestran las que tienen productos publicados y se ocultan las vacías.
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { CATEGORIAS, slugify } from "@/prisma/datos-base";
+import { precioDesdeCosto } from "@/lib/precios-calculo";
 import type { InventarioLeido } from "./leer-excel";
 import { marcaProducto, nombreLegible, ubicarProducto } from "./clasificar";
 
@@ -23,10 +26,20 @@ export const pvpASinIva = (pvp: number, iva: number) => Math.round((pvp / (1 + i
 /** El stock de la tienda es entero: 209,5 m de cable → 209; 0,5 → 0 (agotado). */
 export const stockTienda = (stock: number) => Math.max(0, Math.floor(stock + 1e-9));
 
-async function leerIva(db: PrismaClient) {
-  const fila = await db.setting.findUnique({ where: { clave: "iva" } });
-  const n = Number(fila?.valor);
-  return Number.isFinite(n) && n >= 0 ? n : 15;
+/** IVA y utilidad para el público (Admin → Configuración). */
+async function leerPrecios(db: PrismaClient) {
+  const filas = await db.setting.findMany({ where: { clave: { in: ["iva", "utilidad_publico"] } } });
+  const valor = (clave: string, porDefecto: number) => {
+    const v = filas.find((f) => f.clave === clave)?.valor;
+    const n = Number(v);
+    return v !== undefined && v !== "" && Number.isFinite(n) && n >= 0 ? n : porDefecto;
+  };
+  const iva = valor("iva", 15);
+  const utilidad = valor("utilidad_publico", 35);
+  /** Precio público sin IVA de un ítem del inventario. */
+  const precio = (i: { costo: Prisma.Decimal | number; pvp: Prisma.Decimal | number }) =>
+    Number(i.costo) > 0 ? precioDesdeCosto(Number(i.costo), utilidad) : pvpASinIva(Number(i.pvp), iva);
+  return { iva, utilidad, precio };
 }
 
 /** Guarda el Excel como una nueva "foto" del inventario. Devuelve el id de la carga. */
@@ -102,10 +115,10 @@ export type VistaPrevia = {
 
 /** Qué pasaría en la tienda si se aplica esta carga (sin cambiar nada). */
 export async function vistaPrevia(db: PrismaClient, cargaId: string): Promise<VistaPrevia> {
-  const [items, productos, iva] = await Promise.all([
-    db.inventarioItem.findMany({ where: { cargaId }, select: { codigo: true, stock: true, pvp: true } }),
+  const [items, productos, { precio }] = await Promise.all([
+    db.inventarioItem.findMany({ where: { cargaId }, select: { codigo: true, stock: true, costo: true, pvp: true } }),
     db.product.findMany({ select: { codigo: true, stock: true, precioSinIva: true, estado: true, motivoRechazo: true } }),
-    leerIva(db),
+    leerPrecios(db),
   ]);
   const porCodigo = new Map(productos.map((p) => [p.codigo, p]));
   const enExcel = new Set(items.map((i) => i.codigo));
@@ -115,7 +128,7 @@ export async function vistaPrevia(db: PrismaClient, cargaId: string): Promise<Vi
     if (!p) r.crear++;
     else {
       if (p.estado === "BORRADOR" && p.motivoRechazo === MOTIVO_OCULTO) r.reactivar++;
-      if (p.stock !== stockTienda(Number(i.stock)) || Number(p.precioSinIva) !== pvpASinIva(Number(i.pvp), iva)) r.actualizar++;
+      if (p.stock !== stockTienda(Number(i.stock)) || Number(p.precioSinIva) !== precio(i)) r.actualizar++;
     }
   }
   for (const p of productos) if (!enExcel.has(p.codigo) && !(p.estado === "BORRADOR" && p.motivoRechazo === MOTIVO_OCULTO)) r.ocultar++;
@@ -125,9 +138,9 @@ export async function vistaPrevia(db: PrismaClient, cargaId: string): Promise<Vi
 /** Aplica la carga a la tienda (ver reglas arriba). Devuelve el resumen de lo que cambió. */
 export async function aplicarCarga(db: PrismaClient, cargaId: string): Promise<VistaPrevia> {
   const resumen = await vistaPrevia(db, cargaId);
-  const [items, iva, categorias] = await Promise.all([
+  const [items, { precio }, categorias] = await Promise.all([
     db.inventarioItem.findMany({ where: { cargaId }, orderBy: { codigo: "asc" } }),
-    leerIva(db),
+    leerPrecios(db),
     asegurarCategorias(db),
   ]);
   const existentes = new Set((await db.product.findMany({ select: { codigo: true } })).map((p) => p.codigo));
@@ -149,15 +162,15 @@ export async function aplicarCarga(db: PrismaClient, cargaId: string): Promise<V
     for (let n = 2; slugs.has(slug); n++) slug = `${slug}-${n}`;
     slugs.add(slug);
     const marca = marcaProducto(i.nombre, i.marca);
-    const pvp = Number(i.pvp);
+    const precioSinIva = precio(i);
     return {
       codigo: i.codigo,
       nombre: nombre.slice(0, 200),
       slug,
-      precioSinIva: pvpASinIva(pvp, iva),
+      precioSinIva,
       stock: stockTienda(Number(i.stock)),
       // Sin precio no se puede vender: queda en borrador para completarlo en el panel.
-      estado: pvp > 0 ? "PUBLICADO" : "BORRADOR",
+      estado: precioSinIva > 0 ? "PUBLICADO" : "BORRADOR",
       categoryId,
       brandId: marca ? marcaDe(marca) : null,
     };
@@ -169,7 +182,7 @@ export async function aplicarCarga(db: PrismaClient, cargaId: string): Promise<V
   for (let k = 0; k < existentesExcel.length; k += 500) {
     const filas = existentesExcel
       .slice(k, k + 500)
-      .map((i) => Prisma.sql`(${i.codigo}, ${stockTienda(Number(i.stock))}::int, ${pvpASinIva(Number(i.pvp), iva)}::numeric)`);
+      .map((i) => Prisma.sql`(${i.codigo}, ${stockTienda(Number(i.stock))}::int, ${precio(i)}::numeric)`);
     await db.$executeRaw`
       UPDATE "Product" AS p SET
         "stock" = v.stock,
@@ -208,4 +221,26 @@ export async function aplicarCarga(db: PrismaClient, cargaId: string): Promise<V
 
   await db.inventarioCarga.update({ where: { id: cargaId }, data: { aplicadaEn: new Date() } });
   return resumen;
+}
+
+/**
+ * Recalcula el precio de los productos con el costo de la última carga APLICADA
+ * (se usa al cambiar la utilidad en Admin → Configuración). Devuelve cuántos cambiaron.
+ */
+export async function recalcularPrecios(db: PrismaClient): Promise<number> {
+  const carga = await db.inventarioCarga.findFirst({ where: { aplicadaEn: { not: null } }, orderBy: { aplicadaEn: "desc" }, select: { id: true } });
+  if (!carga) return 0;
+  const [items, { precio }] = await Promise.all([
+    db.inventarioItem.findMany({ where: { cargaId: carga.id }, select: { codigo: true, costo: true, pvp: true } }),
+    leerPrecios(db),
+  ]);
+  let cambiados = 0;
+  for (let k = 0; k < items.length; k += 500) {
+    const filas = items.slice(k, k + 500).map((i) => Prisma.sql`(${i.codigo}, ${precio(i)}::numeric)`);
+    cambiados += await db.$executeRaw`
+      UPDATE "Product" AS p SET "precioSinIva" = v.precio, "updatedAt" = now()
+      FROM (VALUES ${Prisma.join(filas)}) AS v(codigo, precio)
+      WHERE p."codigo" = v.codigo AND p."precioSinIva" <> v.precio`;
+  }
+  return cambiados;
 }

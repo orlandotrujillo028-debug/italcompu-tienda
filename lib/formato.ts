@@ -5,6 +5,11 @@ export function formatoUSD(valor: number | { toString(): string }): string {
   return usd.format(Number(valor));
 }
 
+/** 7.4074 → "7,4" (para mostrar porcentajes; el cálculo usa el valor exacto). */
+export function formatoPct(valor: number | { toString(): string }): string {
+  return Number(valor).toLocaleString("es-EC", { maximumFractionDigits: 1 });
+}
+
 const ZONA_EC = "America/Guayaquil";
 
 /** Fecha en hora de Ecuador (el servidor puede estar en otra zona, p. ej. UTC en Vercel). */

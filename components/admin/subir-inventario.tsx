@@ -15,18 +15,18 @@ export function SubirInventario() {
       <div>
         <h2 className="font-semibold text-marca-navy">Subir inventario</h2>
         <p className="text-sm text-marca-gris">
-          El Excel tal como lo exporta el sistema (<strong>Vista: Inventario</strong>, archivo .xls). Primero verás la
+          El Excel tal como lo exporta el sistema (<strong>Vista: Inventario</strong>, archivo .xls o .xlsx). Primero verás la
           comparación; la tienda solo cambia cuando presionas <strong>Aplicar a la tienda</strong>.
         </p>
       </div>
       <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-marca-azul/25 bg-marca-fondo/60 px-4 py-6 text-center text-sm transition hover:border-marca-azul/60">
         <FileSpreadsheet className="size-8 text-marca-azul" aria-hidden />
-        <span className="font-medium text-marca-navy">{nombre || "Elige el archivo inventario.xls"}</span>
+        <span className="font-medium text-marca-navy">{nombre || "Elige el archivo de inventario (.xls o .xlsx)"}</span>
         <span className="text-xs text-marca-gris">Máximo 8 MB</span>
         <input
           type="file"
           name="archivo"
-          accept=".xls,.xml,application/vnd.ms-excel"
+          accept=".xls,.xlsx,.xml,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           required
           className="sr-only"
           onChange={(e) => setNombre(e.target.files?.[0]?.name ?? "")}

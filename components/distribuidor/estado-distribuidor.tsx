@@ -1,3 +1,4 @@
+import { formatoPct } from "@/lib/formato";
 import Link from "next/link";
 import { BadgeCheck, BadgePercent, Clock, ShieldAlert, XCircle } from "lucide-react";
 import type { UsuarioActual } from "@/lib/auth-guards";
@@ -15,7 +16,7 @@ export function EstadoDistribuidor({ distribuidor, descuento }: { distribuidor: 
           <div>
             <h2 className="font-semibold text-marca-navy">¿Tienes un local de tecnología?</h2>
             <p className="text-sm text-marca-gris">
-              Solicita ser distribuidor y compra con {descuento > 0 ? `${descuento} % de descuento` : "precios especiales"}.
+              Solicita ser distribuidor y compra con {descuento > 0 ? `${formatoPct(descuento)} % de descuento` : "precios especiales"}.
             </p>
           </div>
         </div>
@@ -27,7 +28,7 @@ export function EstadoDistribuidor({ distribuidor, descuento }: { distribuidor: 
   }
 
   const estados = {
-    APROBADO: { Icono: BadgeCheck, color: "text-emerald-600", titulo: `Distribuidor aprobado · ${distribuidor.nombreLocal}`, texto: `Ya ves precios de distribuidor${descuento > 0 ? ` (${descuento} % menos)` : ""} en toda la tienda.` },
+    APROBADO: { Icono: BadgeCheck, color: "text-emerald-600", titulo: `Distribuidor aprobado · ${distribuidor.nombreLocal}`, texto: `Ya ves precios de distribuidor${descuento > 0 ? ` (${formatoPct(descuento)} % menos)` : ""} en toda la tienda.` },
     PENDIENTE: { Icono: Clock, color: "text-marca-cyan", titulo: "Solicitud de distribuidor en revisión", texto: "Mientras la revisamos ves los precios normales. Te avisaremos por correo." },
     RECHAZADO: { Icono: XCircle, color: "text-destructive", titulo: "Solicitud de distribuidor no aprobada", texto: distribuidor.motivoRechazo ? `Motivo: ${distribuidor.motivoRechazo}` : "Puedes corregir tus datos y volver a enviarla." },
     SUSPENDIDO: { Icono: ShieldAlert, color: "text-destructive", titulo: "Precios de distribuidor suspendidos", texto: "Escríbenos para revisar tu caso." },

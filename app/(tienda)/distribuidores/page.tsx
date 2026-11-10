@@ -4,6 +4,7 @@ import { BadgePercent, CheckCircle2, Clock, FileText, Store, UserPlus } from "lu
 import { PaginaInfo } from "@/components/info/pagina-info";
 import { Button } from "@/components/ui/button";
 import { getUsuarioActual } from "@/lib/auth-guards";
+import { formatoPct } from "@/lib/formato";
 import { getConfigPrecios } from "@/lib/precios";
 import { TIPOS_NEGOCIO } from "@/lib/ecuador";
 
@@ -21,7 +22,8 @@ const PREGUNTAS = [
 
 export default async function DistribuidoresPage() {
   const [usuario, config] = await Promise.all([getUsuarioActual(), getConfigPrecios()]);
-  const d = config.descuentoDistribuidor;
+  const d = formatoPct(config.descuentoDistribuidor);
+  const hay = config.descuentoDistribuidor > 0;
   const estado = usuario?.distribuidor?.estado;
 
   // Botón principal según quién está mirando.
@@ -39,13 +41,13 @@ export default async function DistribuidoresPage() {
   const pasos = [
     { Icono: UserPlus, titulo: "1. Regístrate", texto: "Llena los datos de tu local y tu RUC. Toma 2 minutos." },
     { Icono: Clock, titulo: "2. Revisamos", texto: "Validamos la información de tu negocio." },
-    { Icono: BadgePercent, titulo: "3. Compra con descuento", texto: d > 0 ? `Todo el catálogo ${d} % más barato.` : "Precios especiales en todo el catálogo." },
+    { Icono: BadgePercent, titulo: "3. Compra con descuento", texto: hay ? `Todo el catálogo ${d} % más barato.` : "Precios especiales en todo el catálogo." },
   ];
 
   return (
     <PaginaInfo
       titulo="Programa de distribuidores"
-      descripcion={`¿Tienes un local de tecnología? Compra a ITALCOMPU ${d > 0 ? `con ${d} % de descuento` : "a precio especial"} en todo el catálogo.`}
+      descripcion={`¿Tienes un local de tecnología? Compra a ITALCOMPU ${hay ? `con ${d} % de descuento` : "a precio especial"} en todo el catálogo.`}
     >
       <section className="grid gap-3 sm:grid-cols-3">
         {pasos.map(({ Icono, titulo, texto }) => (
@@ -69,7 +71,7 @@ export default async function DistribuidoresPage() {
         <div className="space-y-2">
           <h2 className="flex items-center gap-2 text-lg font-bold text-marca-navy"><BadgePercent className="size-5 text-marca-cyan" /> Beneficios</h2>
           <ul className="list-disc space-y-1 pl-6 text-sm">
-            <li>{d > 0 ? `${d} % de descuento` : "Precio especial"} en todos los productos, siempre visible al iniciar sesión.</li>
+            <li>{hay ? `${d} % de descuento` : "Precio especial"} en todos los productos, siempre visible al iniciar sesión.</li>
             <li>Atención prioritaria por WhatsApp.</li>
             <li>Mismos envíos, garantía y formas de pago que la tienda.</li>
           </ul>

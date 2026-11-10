@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Campo } from "@/components/auth/campo";
 import { guardarConfiguracion } from "@/app/admin/configuracion/actions";
 import { formatoUSD } from "@/lib/formato";
-import { calcularPrecio } from "@/lib/precios-calculo";
+import { calcularPrecio, descuentoPorUtilidades, precioDesdeCosto } from "@/lib/precios-calculo";
 import { configuracionSchema, type ConfiguracionInput } from "@/lib/validaciones/configuracion";
 
 export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) {
@@ -20,11 +20,17 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
   const { register, handleSubmit, formState, watch, reset } = useForm<ConfiguracionInput>({ resolver: zodResolver(configuracionSchema), defaultValues: valores });
   const e = formState.errors;
 
-  // Ejemplo en vivo: cómo queda un producto de $100 sin IVA.
+  // Ejemplo en vivo: cómo queda un producto que costó $100 sin IVA.
   const iva = Number(watch("iva")) || 0;
-  const desc = Number(watch("descuento_distribuidor")) || 0;
-  const ejemplo = { publico: calcularPrecio(100, { iva, esDistribuidor: false, descuento: 0 }).conIva, distribuidor: calcularPrecio(100, { iva, esDistribuidor: true, descuento: desc }).conIva };
+  const up = Number(watch("utilidad_publico")) || 0;
+  const ud = Number(watch("utilidad_distribuidor")) || 0;
+  const base = precioDesdeCosto(100, up);
+  const ejemplo = {
+    publico: calcularPrecio(base, { iva, esDistribuidor: false, descuento: 0 }).conIva,
+    distribuidor: calcularPrecio(base, { iva, esDistribuidor: true, descuento: descuentoPorUtilidades(up, ud) }).conIva,
+  };
   const cambiaIva = Number(watch("iva")) !== Number(valores.iva);
+  const cambiaUtilidad = up !== Number(valores.utilidad_publico);
 
   const enviar = handleSubmit((datos) =>
     startTransition(async () => {
@@ -41,14 +47,34 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
     <form onSubmit={enviar} className="space-y-6" noValidate>
       <section className={seccion}>
         <h2 className="font-bold text-marca-navy">Precios</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <Campo id="iva" label="IVA (%)" inputMode="decimal" error={e.iva?.message} {...register("iva")} />
-          <Campo id="descuento_distribuidor" label="Descuento para distribuidores (%)" inputMode="decimal" error={e.descuento_distribuidor?.message} {...register("descuento_distribuidor")} />
+          <Campo
+            id="utilidad_publico"
+            label="Utilidad venta al público (%)"
+            inputMode="decimal"
+            ayuda="Se suma al costo del inventario."
+            error={e.utilidad_publico?.message}
+            {...register("utilidad_publico")}
+          />
+          <Campo
+            id="utilidad_distribuidor"
+            label="Utilidad venta a distribuidor (%)"
+            inputMode="decimal"
+            ayuda="También sobre el costo."
+            error={e.utilidad_distribuidor?.message}
+            {...register("utilidad_distribuidor")}
+          />
         </div>
         <p className="rounded-lg bg-marca-fondo p-3 text-sm">
-          Ejemplo: un producto de $100 sin IVA se verá a <strong className="text-marca-azul">{formatoUSD(ejemplo.publico)}</strong> para el público y a{" "}
-          <strong className="text-marca-navy">{formatoUSD(ejemplo.distribuidor)}</strong> para distribuidores.
+          Ejemplo: un producto que costó $100 (sin IVA) se verá a <strong className="text-marca-azul">{formatoUSD(ejemplo.publico)}</strong> para el público y a{" "}
+          <strong className="text-marca-navy">{formatoUSD(ejemplo.distribuidor)}</strong> para distribuidores (precios con IVA).
         </p>
+        {cambiaUtilidad && (
+          <p className="flex gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" /> Al guardar se recalcula el precio de todos los productos del inventario con la nueva utilidad. Los pedidos ya hechos no cambian.
+          </p>
+        )}
         {cambiaIva && (
           <p className="flex gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" /> Cambiar el IVA modifica al instante el precio de TODO el catálogo. Los pedidos ya hechos no cambian.

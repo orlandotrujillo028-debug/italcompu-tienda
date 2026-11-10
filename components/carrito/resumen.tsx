@@ -1,5 +1,5 @@
 import { Truck } from "lucide-react";
-import { formatoUSD } from "@/lib/formato";
+import { formatoPct, formatoUSD } from "@/lib/formato";
 import type { Cotizacion } from "@/lib/pedido";
 
 /** Caja de totales (carrito y checkout). */
@@ -9,7 +9,7 @@ export function Resumen({ c, retiro = false, children }: { c: Cotizacion; retiro
       <h2 className="text-lg font-bold text-marca-navy">Resumen</h2>
       {c.tarifa.esDistribuidor && (
         <p className="rounded-lg bg-marca-cyan/15 px-3 py-2 text-xs font-medium text-marca-navy">
-          Precios de distribuidor aplicados ({c.tarifa.descuento} % de descuento).
+          Precios de distribuidor aplicados ({formatoPct(c.tarifa.descuento)} % de descuento).
         </p>
       )}
       <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-sm">

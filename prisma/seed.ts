@@ -215,7 +215,8 @@ async function main() {
       { clave: "iva", valor: "15" },
       { clave: "costo_envio", valor: "5" },
       { clave: "envio_gratis_desde", valor: "300" },
-      { clave: "descuento_distribuidor", valor: "10" }, // % sobre el precio público
+      { clave: "utilidad_publico", valor: "35" }, // % sobre el costo (precio público)
+      { clave: "utilidad_distribuidor", valor: "25" }, // % sobre el costo (distribuidores)
       { clave: "whatsapp", valor: "593990000000" },
       { clave: "whatsapp_pedidos", valor: "" }, // número que recibe los pedidos (vacío = el general)
       { clave: "email_contacto", valor: "ventas@italcompu.test" },

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Campo } from "@/components/auth/campo";
 import { firmarSubidaImagen, guardarProducto } from "@/app/vendedor/productos/actions";
-import { formatoUSD } from "@/lib/formato";
+import { formatoPct, formatoUSD } from "@/lib/formato";
 import { calcularPrecio } from "@/lib/precios-calculo";
 import { productoSchema, urlImagenPermitida, type ProductoInput } from "@/lib/validaciones/producto";
 
@@ -173,7 +173,7 @@ export function ProductoForm({ id, inicial, categorias, marcas, config, esAdmin 
             <dd className="text-xl font-bold text-marca-azul">{formatoUSD(publico.conIva)}</dd>
           </div>
           <div>
-            <dt className="text-marca-gris">Precio distribuidor ({config.descuentoDistribuidor} % menos, con IVA)</dt>
+            <dt className="text-marca-gris">Precio distribuidor ({formatoPct(config.descuentoDistribuidor)} % menos, con IVA)</dt>
             <dd className="text-xl font-bold text-marca-navy">{formatoUSD(distribuidor.conIva)}</dd>
           </div>
         </dl>

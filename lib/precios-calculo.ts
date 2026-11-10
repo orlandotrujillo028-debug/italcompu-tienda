@@ -8,6 +8,24 @@ export type Tarifa = { iva: number; esDistribuidor: boolean; descuento: number }
 const redondear = (n: number) => Math.round(Number((n * 100).toPrecision(12))) / 100;
 
 /**
+ * Precio público SIN IVA a partir del costo (sin IVA) y la utilidad para el público.
+ * Utilidad sobre el costo: costo $10 + 35 % = $13,50 sin IVA → $15,53 con IVA.
+ * 4 decimales, igual que `Product.precioSinIva`.
+ */
+export const precioDesdeCosto = (costo: number, utilidadPublico: number) =>
+  Math.round(costo * (1 + utilidadPublico / 100) * 10_000) / 10_000;
+
+/**
+ * % que baja el precio público para que el distribuidor pague costo + su utilidad.
+ * Con 35 % público y 25 % distribuidor: 1 − 1,25 ÷ 1,35 = 7,407… % (se guarda sin redondear
+ * para que el precio de distribuidor dé exactamente costo × 1,25).
+ */
+export function descuentoPorUtilidades(utilidadPublico: number, utilidadDistribuidor: number) {
+  if (utilidadDistribuidor >= utilidadPublico) return 0;
+  return (1 - (1 + utilidadDistribuidor / 100) / (1 + utilidadPublico / 100)) * 100;
+}
+
+/**
  * Precio de un producto para una tarifa.
  * El descuento de distribuidor se aplica ANTES del IVA.
  */

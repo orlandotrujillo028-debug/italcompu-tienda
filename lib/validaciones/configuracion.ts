@@ -11,7 +11,9 @@ const urlRed = z
 /** Todo lo que el admin puede configurar (tabla Setting, clave → valor). */
 export const configuracionSchema = z.object({
   iva: porcentaje(50, "IVA entre 0 y 50 %"),
-  descuento_distribuidor: porcentaje(90, "Descuento entre 0 y 90 %"),
+  // Utilidad sobre el COSTO del inventario (precio sin IVA = costo × (1 + utilidad)).
+  utilidad_publico: porcentaje(500, "Utilidad entre 0 y 500 %"),
+  utilidad_distribuidor: porcentaje(500, "Utilidad entre 0 y 500 %"),
   costo_envio: dinero,
   envio_gratis_desde: dinero,
   whatsapp: z.string().trim().regex(/^593\d{9}$/, "Formato 593 + 9 dígitos, ej. 593991234567"),
@@ -28,6 +30,9 @@ export const configuracionSchema = z.object({
   instagram: urlRed,
   tiktok: urlRed,
   datos_bancarios: z.string().trim().max(800),
+}).refine((d) => d.utilidad_distribuidor <= d.utilidad_publico, {
+  path: ["utilidad_distribuidor"],
+  message: "La utilidad del distribuidor no puede ser mayor que la del público",
 });
 
 export type ConfiguracionInput = z.input<typeof configuracionSchema>;
