@@ -68,7 +68,7 @@ export default async function Home() {
         <VitrinaCategoria key={s.id} categoria={s} {...comun} />
       ))}
 
-      {invitar && <InvitacionDistribuidor descuento={config.descuentoDistribuidor} />}
+      {invitar && <InvitacionDistribuidor descuento={config.descuentoMaximo} />}
 
       {resto.map((s) => (
         <VitrinaCategoria key={s.id} categoria={s} {...comun} />

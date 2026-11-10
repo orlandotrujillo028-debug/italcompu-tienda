@@ -71,6 +71,7 @@ const seleccionTarjeta = {
   nombre: true,
   codigo: true,
   precioSinIva: true,
+  precioDistribuidorSinIva: true,
   stock: true,
   destacado: true,
   nuevo: true,
@@ -94,8 +95,9 @@ function filtroTexto(texto: string): Prisma.ProductWhereInput[] {
 }
 
 export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa) {
-  // Factor para pasar del precio que ve el usuario (con IVA y descuento) al precio guardado (sin IVA).
-  const factor = (1 - tarifa.descuento / 100) * (1 + tarifa.iva / 100);
+  // El distribuidor filtra y ordena por SU precio. Factor: del precio con IVA que ve el usuario al guardado sin IVA.
+  const col = tarifa.esDistribuidor ? "precioDistribuidorSinIva" : "precioSinIva";
+  const factor = 1 + tarifa.iva / 100;
 
   const base: Prisma.ProductWhereInput[] = [{ estado: "PUBLICADO" }];
   if (ctx.categoriaIds) base.push({ categoryId: { in: ctx.categoriaIds } });
@@ -106,8 +108,8 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
   const porMarca: Prisma.ProductWhereInput[] = f.marcas.length ? [{ brand: { slug: { in: f.marcas } } }] : [];
   const porSub: Prisma.ProductWhereInput[] = f.sub ? [{ category: { slug: f.sub } }] : [];
   const porPrecio: Prisma.ProductWhereInput[] = [];
-  if (f.min !== null) porPrecio.push({ precioSinIva: { gte: f.min / factor } });
-  if (f.max !== null) porPrecio.push({ precioSinIva: { lte: f.max / factor } });
+  if (f.min !== null) porPrecio.push({ [col]: { gte: f.min / factor } });
+  if (f.max !== null) porPrecio.push({ [col]: { lte: f.max / factor } });
   const porStock: Prisma.ProductWhereInput[] = f.soloStock ? [{ stock: { gt: 0 } }] : [];
 
   const where: Prisma.ProductWhereInput = { AND: [...base, ...porMarca, ...porSub, ...porPrecio, ...porStock] };
@@ -117,9 +119,9 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
 
   const orderBy: Prisma.ProductOrderByWithRelationInput[] =
     f.orden === "precio-asc"
-      ? [{ precioSinIva: "asc" }]
+      ? [{ [col]: "asc" }]
       : f.orden === "precio-desc"
-        ? [{ precioSinIva: "desc" }]
+        ? [{ [col]: "desc" }]
         : f.orden === "nuevos"
           ? [{ createdAt: "desc" }]
           : [{ destacado: "desc" }, { nuevo: "desc" }, { createdAt: "desc" }];
@@ -141,7 +143,7 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
     ctx.facetaSubcategorias
       ? prisma.product.groupBy({ by: ["categoryId"], where: whereSubs, _count: { _all: true } })
       : Promise.resolve([]),
-    prisma.product.aggregate({ where: { AND: base }, _min: { precioSinIva: true }, _max: { precioSinIva: true } }),
+    prisma.product.aggregate({ where: { AND: base }, _min: { [col]: true }, _max: { [col]: true } }),
   ]);
 
   const [marcas, subcategorias] = await Promise.all([
@@ -165,6 +167,7 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
     nombre: p.nombre,
     codigo: p.codigo,
     precioSinIva: Number(p.precioSinIva),
+    precioDistribuidorSinIva: Number(p.precioDistribuidorSinIva),
     stock: p.stock,
     destacado: p.destacado,
     nuevo: p.nuevo,
@@ -187,8 +190,8 @@ export async function listarProductos(ctx: Contexto, f: Filtros, tarifa: Tarifa)
         cantidad: gruposSub.find((g) => g.categoryId === s.id)?._count._all ?? 0,
       })),
       // Rango de precios (con IVA, según la tarifa) para orientar al usuario.
-      precioMin: aVista(rango._min.precioSinIva),
-      precioMax: aVista(rango._max.precioSinIva),
+      precioMin: aVista(rango._min[col] ?? null),
+      precioMax: aVista(rango._max[col] ?? null),
     },
   };
 }

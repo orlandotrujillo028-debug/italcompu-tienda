@@ -15,7 +15,7 @@ export default async function RegistroDistribuidorPage() {
   const usuario = await getUsuarioActual();
   if (usuario) redirect(usuario.rol === "CLIENTE" ? "/cuenta/distribuidor" : panelPorRol(usuario.rol));
 
-  const { descuentoDistribuidor } = await getConfigPrecios();
+  const { descuentoMaximo } = await getConfigPrecios();
 
   return (
     <Card className="shadow-xl">
@@ -24,7 +24,7 @@ export default async function RegistroDistribuidorPage() {
         <CardDescription>Regístrate como distribuidor y compra a precio especial.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <BeneficiosDistribuidor descuento={descuentoDistribuidor} />
+        <BeneficiosDistribuidor descuento={descuentoMaximo} />
         <RegistroDistribuidorForm />
         <p className="border-t pt-4 text-center text-sm text-marca-gris">
           ¿Ya tienes cuenta?{" "}

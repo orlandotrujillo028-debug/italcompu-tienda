@@ -33,9 +33,10 @@ export type LineaCotizada = {
   imagen: string | null;
   stock: number;
   cantidad: number; // ya ajustada al stock
-  unitarioSinIva: number; // precio cobrado (con descuento de distribuidor si aplica)
+  unitarioSinIva: number; // precio cobrado (de distribuidor si aplica)
   unitarioConIva: number;
   totalLinea: number; // con IVA
+  totalPublico: number; // lo que costaría al precio público (con IVA)
 };
 
 export type Aviso = { productId: string; texto: string };
@@ -54,6 +55,7 @@ export async function cotizar(items: { productId: string; cantidad: number }[], 
         nombre: true,
         codigo: true,
         precioSinIva: true,
+        precioDistribuidorSinIva: true,
         stock: true,
         images: { orderBy: { orden: "asc" }, take: 1, select: { url: true } },
       },
@@ -78,7 +80,7 @@ export async function cotizar(items: { productId: string; cantidad: number }[], 
     if (cantidad < pedida) {
       avisos.push({ productId, texto: `Solo quedan ${p.stock} unidades de “${p.nombre}”; ajustamos la cantidad.` });
     }
-    const precio = calcularPrecio(p.precioSinIva, tarifa);
+    const precio = calcularPrecio(p, tarifa);
     lineas.push({
       productId,
       slug: p.slug,
@@ -90,6 +92,7 @@ export async function cotizar(items: { productId: string; cantidad: number }[], 
       unitarioSinIva: precio.sinIva,
       unitarioConIva: precio.conIva,
       totalLinea: redondear(precio.conIva * cantidad),
+      totalPublico: redondear(precio.publicoConIva * cantidad),
     });
   }
 
@@ -97,6 +100,11 @@ export async function cotizar(items: { productId: string; cantidad: number }[], 
   const totalProductos = redondear(lineas.reduce((t, l) => t + l.totalLinea, 0));
   const subtotal = redondear(lineas.reduce((t, l) => t + l.unitarioSinIva * l.cantidad, 0));
   const iva = redondear(totalProductos - subtotal);
+  // Lo que ahorra un distribuidor frente al precio público (para mostrarlo y guardarlo en el pedido).
+  const totalPublico = redondear(lineas.reduce((t, l) => t + l.totalPublico, 0));
+  const ahorroDistribuidor = tarifa.esDistribuidor ? redondear(totalPublico - totalProductos) : 0;
+  // Mínimo 0,01 % para un distribuidor: el pedido guarda este valor y "> 0" lo identifica como pedido de distribuidor.
+  const porcentajeAhorro = tarifa.esDistribuidor ? Math.max(0.01, totalPublico > 0 ? redondear((ahorroDistribuidor / totalPublico) * 100) : 0) : 0;
   const envioGratis = totalProductos >= envio.envioGratisDesde;
   const costoEnvio = lineas.length === 0 || metodoEnvio === "RETIRO" || envioGratis ? 0 : envio.costoEnvio;
 
@@ -107,6 +115,8 @@ export async function cotizar(items: { productId: string; cantidad: number }[], 
     subtotal,
     iva,
     totalProductos,
+    ahorroDistribuidor,
+    porcentajeAhorro,
     envio: costoEnvio,
     envioGratis,
     faltaParaEnvioGratis: envioGratis ? 0 : redondear(envio.envioGratisDesde - totalProductos),

@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
         nombre: true,
         codigo: true,
         precioSinIva: true,
+        precioDistribuidorSinIva: true,
         stock: true,
         brand: { select: { nombre: true } },
         images: { orderBy: { orden: "asc" }, take: 1, select: { url: true } },
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
         codigo: p.codigo,
         marca: p.brand?.nombre ?? null,
         imagen: p.images[0]?.url ?? null,
-        precio: calcularPrecio(p.precioSinIva, tarifa).conIva,
+        precio: calcularPrecio(p, tarifa).conIva,
         agotado: p.stock <= 0,
       })),
       categorias: categorias.map((c) => ({

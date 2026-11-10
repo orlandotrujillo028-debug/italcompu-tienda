@@ -19,9 +19,9 @@ export async function guardarConfiguracion(datos: unknown): Promise<{ ok: true }
   await prisma.$transaction(
     cambios.map(([clave, valor]) => prisma.setting.upsert({ where: { clave }, create: { clave, valor: String(valor) }, update: { valor: String(valor) } })),
   );
-  // Nueva utilidad para el público → se recalcula el precio de todo el inventario con su costo.
+  // Nueva utilidad → se recalculan los precios de todo el inventario con su costo.
   let recalculados = 0;
-  if (cambios.some(([k]) => k === "utilidad_publico")) recalculados = await recalcularPrecios(prisma);
+  if (cambios.some(([k]) => k === "utilidad_publico" || k === "utilidad_distribuidor")) recalculados = await recalcularPrecios(prisma);
 
   // Registra qué cambió (sin volcar textos largos como los datos bancarios).
   await registrarActividad(

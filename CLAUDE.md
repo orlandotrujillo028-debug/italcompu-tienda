@@ -9,7 +9,7 @@ Guía de pasos: `../GUIA_PROMPTS_ECOMMERCE.md`. Avanzar **un paso a la vez**.
 - Moneda USD. Precios mostrados "Precio incluye IVA" (IVA 15 %, configurable). Se guarda `precioSinIva` y el IVA se calcula.
 - Producto: código (SKU), nombre, marca, categoría/subcategoría, descripción, especificaciones clave/valor, imágenes, precio, stock, estado (BORRADOR / PENDIENTE / PUBLICADO / RECHAZADO), destacado, nuevo.
 - **NO es marketplace**: todo lo vende ITALCOMPU. Los VENDEDORES son el personal de la tienda.
-- **Distribuidores**: un CLIENTE con local del mismo giro solicita ser distribuidor (RUC, nombre del local…) → el ADMIN aprueba → ve el precio de distribuidor = costo + `utilidad_distribuidor` % (Setting, por defecto 25 %); el público ve costo + `utilidad_publico` % (por defecto 35 %). Ver "Precios por utilidad". Mientras está PENDIENTE ve precios normales.
+- **Distribuidores**: un CLIENTE con local del mismo giro solicita ser distribuidor (RUC, nombre del local…) → el ADMIN aprueba → ve el precio de distribuidor = costo + `utilidad_distribuidor` % (Setting, 25 %); el público ve costo + la utilidad de la categoría (general `utilidad_publico` 35 %). Ver "Precios por utilidad". Mientras está PENDIENTE ve precios normales.
 - Precios SIEMPRE calculados en el servidor con `lib/precios.ts` (`getTarifa()` + `calcularPrecio()`); el pedido guarda el precio cobrado y el % aplicado.
 - Envíos en Ecuador (Servientrega u otro). **Sin pasarela de pago**: el pedido se confirma por WhatsApp (ver "Pedidos por WhatsApp"). Formas de pago: transferencia, contra entrega y tarjeta mediante link de pago que la tienda envía por WhatsApp.
 - WhatsApp flotante, redes sociales, "¿Quiénes somos?", enlace "¿Tienes un local? Sé distribuidor" (`/registro-distribuidor`).
@@ -162,8 +162,11 @@ Estilo moderno y limpio, responsive (móvil primero). Degradados navy→azul→c
 - CSV compartido: `lib/csv.ts` (`celdaCsv`, `numeroCsv`, `respuestaCsv`); también lo usa la exportación de pedidos.
 
 ## Precios por utilidad (decisión del dueño, 10-nov-2026)
-- El PVP del sistema contable tenía utilidades muy altas: la tienda calcula el precio desde el COSTO del inventario (sin IVA).
-- Público: `precioSinIva = costo × (1 + utilidad_publico/100)` (4 decimales, `precioDesdeCosto` en `lib/precios-calculo.ts`), se guarda al aplicar el inventario. Con IVA: × 1,15.
-- Distribuidor: costo × (1 + utilidad_distribuidor/100). Se implementa como un % de descuento sobre el público, `descuentoPorUtilidades()` = 1 − 1,25/1,35 = 7,407… % (sin redondear, para que dé exacto). `getConfigPrecios().descuentoDistribuidor` es ese valor derivado; en pantalla se muestra con `formatoPct` ("7,4 %").
-- Settings `utilidad_publico` (35) y `utilidad_distribuidor` (25) en Admin → Configuración. Cambiar la del público recalcula todos los precios con el costo de la última carga aplicada (`recalcularPrecios` en `lib/inventario/sincronizar.ts`). El viejo `descuento_distribuidor` ya no se usa.
-- Un precio editado a mano en el panel se pisa con la siguiente carga de inventario (como antes). El reporte de márgenes sigue analizando el PVP del Excel.
+- El PVP del sistema contable tenía utilidades muy altas: la tienda calcula los precios desde el COSTO del inventario (sin IVA). Reglas en `lib/inventario/reglas-precio.ts` (`leerReglasPrecio(db)`: `utilidadDe`, `precios`, `distribuidorDesdePublico`).
+- Público: costo × (1 + utilidad de la categoría). `Category.utilidadPublico` (null = hereda de la categoría padre; si no, Setting `utilidad_publico` = 35). Hoy 85 % en Accesorios, Cables y adaptadores, Periféricos y Servicio técnico.
+- Distribuidor: costo × (1 + Setting `utilidad_distribuidor` = 25), IGUAL en todas las categorías, nunca mayor que el público.
+- Se guardan los dos: `Product.precioSinIva` y `Product.precioDistribuidorSinIva` (Decimal 10,4). `calcularPrecio(producto, tarifa)` recibe el producto (o un número = solo público); `Tarifa = { iva, esDistribuidor }`. El listado filtra/ordena por la columna de la tarifa.
+- Sin costo (producto creado a mano o costo 0): el público es el que se escribe / PVP÷1,15 y el distribuidor se deduce: público × 1,25 ÷ (1 + utilidad de la categoría).
+- `recalcularPrecios(db)` (`lib/inventario/sincronizar.ts`) recalcula los dos precios de todo con el costo de la última carga aplicada. Se llama al aplicar inventario, al cambiar utilidades en Configuración y al cambiar la utilidad de una categoría (Admin → Catálogo, campo "Utilidad").
+- Pedido: `Order.descuentoDistribuidor` = % de ahorro total frente al público (mín. 0,01 para distribuidores: "> 0" marca el pedido como de distribuidor). Textos de marketing: "hasta X %" con `getConfigPrecios().descuentoMaximo`.
+- Un precio editado a mano en el panel se pisa con la siguiente carga o recálculo. El reporte de márgenes sigue analizando el PVP del Excel.

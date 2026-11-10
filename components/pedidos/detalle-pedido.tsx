@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check, MapPin, Store, Truck, XCircle } from "lucide-react";
 import type { Prisma } from "@prisma/client";
-import { formatoUSD } from "@/lib/formato";
+import { formatoPct, formatoUSD } from "@/lib/formato";
 import { calcularPrecio } from "@/lib/precios-calculo";
 import { ESTADOS_PEDIDO, indicePaso, PASOS_PEDIDO, type DireccionPedido, type EstadoPedido } from "@/lib/pedidos-ui";
 
@@ -117,7 +117,7 @@ export function DetallePedido({ pedido }: { pedido: PedidoConItems }) {
             <dd className="border-t pt-1 text-right font-bold text-marca-azul">{formatoUSD(pedido.total)}</dd>
           </dl>
           {Number(pedido.descuentoDistribuidor) > 0 && (
-            <p className="mt-2 text-xs text-emerald-700">Incluye {Number(pedido.descuentoDistribuidor)} % de descuento de distribuidor.</p>
+            <p className="mt-2 text-xs text-emerald-700">Incluye precios de distribuidor ({formatoPct(pedido.descuentoDistribuidor)} % de ahorro en total).</p>
           )}
         </div>
       </section>
@@ -127,7 +127,7 @@ export function DetallePedido({ pedido }: { pedido: PedidoConItems }) {
         <ul className="divide-y text-sm">
           {pedido.items.map((i) => {
             // Mismo cálculo y redondeo que al cobrar (precioSinIva ya incluye el descuento si lo hubo).
-            const unitario = calcularPrecio(i.precioSinIva, { iva, esDistribuidor: false, descuento: 0 }).conIva;
+            const unitario = calcularPrecio(i.precioSinIva, { iva, esDistribuidor: false }).conIva;
             return (
               <li key={i.id} className="flex justify-between gap-3 py-2">
                 <span className="min-w-0">

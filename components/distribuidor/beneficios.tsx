@@ -4,7 +4,7 @@ import { BadgePercent, Clock, Store } from "lucide-react";
 /** Explica en 3 líneas qué gana un local al ser distribuidor. */
 export function BeneficiosDistribuidor({ descuento }: { descuento: number }) {
   const items = [
-    { Icono: BadgePercent, texto: descuento > 0 ? `Precios ${formatoPct(descuento)} % más bajos en todo el catálogo.` : "Precios especiales en todo el catálogo." },
+    { Icono: BadgePercent, texto: descuento > 0 ? `Precios hasta ${formatoPct(descuento)} % más bajos en todo el catálogo.` : "Precios especiales en todo el catálogo." },
     { Icono: Store, texto: "Para locales del mismo giro: tiendas de computación, servicio técnico, integradores." },
     { Icono: Clock, texto: "Revisamos tu RUC y activamos tus precios en cuanto aprobemos la solicitud." },
   ];

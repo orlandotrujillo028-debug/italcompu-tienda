@@ -6,6 +6,7 @@ import { Prisma, type EstadoProducto } from "@prisma/client";
 import { z } from "zod";
 import { registrarActividad } from "@/lib/actividad";
 import { requireRole } from "@/lib/auth-guards";
+import { leerReglasPrecio } from "@/lib/inventario/reglas-precio";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { productoSchema } from "@/lib/validaciones/producto";
@@ -60,6 +61,8 @@ export async function guardarProducto(id: unknown, datos: unknown, accion: unkno
   else if (anterior?.estado === "PUBLICADO" && soloCambioStock) estado = "PUBLICADO";
   else estado = "PENDIENTE";
 
+  // Precio de distribuidor: se deduce el costo con la utilidad de la categoría y se le suma la del distribuidor.
+  const reglas = await leerReglasPrecio(prisma);
   const campos = {
     codigo: d.codigo,
     nombre: d.nombre,
@@ -67,6 +70,7 @@ export async function guardarProducto(id: unknown, datos: unknown, accion: unkno
     descripcion: d.descripcion || null,
     specs: d.specs,
     precioSinIva: d.precioSinIva,
+    precioDistribuidorSinIva: reglas.distribuidorDesdePublico(d.precioSinIva, d.categoryId),
     stock: d.stock,
     garantiaMeses: d.garantiaMeses,
     categoryId: d.categoryId,

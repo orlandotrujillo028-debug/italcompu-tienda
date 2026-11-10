@@ -1,19 +1,20 @@
 import "server-only";
 import { getMenuCategorias } from "@/lib/catalogo";
-import { getConfigPrecios } from "@/lib/precios";
+import { leerReglasPrecio } from "@/lib/inventario/reglas-precio";
 import { prisma } from "@/lib/prisma";
 
 /** Lo que necesita el formulario de producto: categorías, marcas y configuración de precios. */
 export async function datosFormularioProducto() {
-  const [categorias, marcas, config] = await Promise.all([
+  const [categorias, marcas, reglas] = await Promise.all([
     getMenuCategorias(),
     prisma.brand.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
-    getConfigPrecios(),
+    leerReglasPrecio(prisma),
   ]);
   return {
-    categorias: categorias.map((c) => ({ id: c.id, nombre: c.nombre, children: c.children.map((s) => ({ id: s.id, nombre: s.nombre })) })),
+    categorias: categorias.map((c) => ({ id: c.id, nombre: c.nombre, children: c.children.map((s) => ({ id: s.id, nombre: s.nombre, utilidad: reglas.utilidadDe(s.id) })),
+    })),
     marcas,
-    config,
+    config: { iva: reglas.iva, utilidadDistribuidor: reglas.utilidadDistribuidor },
   };
 }
 

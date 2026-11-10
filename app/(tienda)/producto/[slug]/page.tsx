@@ -32,6 +32,7 @@ const getProducto = cache((slug: string) =>
       descripcion: true,
       specs: true,
       precioSinIva: true,
+      precioDistribuidorSinIva: true,
       stock: true,
       garantiaMeses: true,
       destacado: true,
@@ -75,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 async function getRelacionados(p: { id: string; categoryId: string; parentId?: string }): Promise<ProductoTarjeta[]> {
   const select = {
-    id: true, slug: true, nombre: true, codigo: true, precioSinIva: true, stock: true, destacado: true, nuevo: true,
+    id: true, slug: true, nombre: true, codigo: true, precioSinIva: true, precioDistribuidorSinIva: true, stock: true, destacado: true, nuevo: true,
     brand: { select: { nombre: true } },
     images: { orderBy: { orden: "asc" as const }, take: 1, select: { url: true } },
   };
@@ -96,7 +97,8 @@ async function getRelacionados(p: { id: string; categoryId: string; parentId?: s
         })
       : [];
   return [...mismos, ...extra].map((r) => ({
-    id: r.id, slug: r.slug, nombre: r.nombre, codigo: r.codigo, precioSinIva: Number(r.precioSinIva), stock: r.stock,
+    id: r.id, slug: r.slug, nombre: r.nombre, codigo: r.codigo, precioSinIva: Number(r.precioSinIva),
+    precioDistribuidorSinIva: Number(r.precioDistribuidorSinIva), stock: r.stock,
     destacado: r.destacado, nuevo: r.nuevo, marca: r.brand?.nombre ?? null, imagen: r.images[0]?.url ?? null,
   }));
 }
@@ -113,7 +115,7 @@ export default async function ProductoPage({ params }: Props) {
     getRelacionados({ id: p.id, categoryId: p.categoryId, parentId: padre?.id }),
   ]);
 
-  const precio = calcularPrecio(p.precioSinIva, tarifa);
+  const precio = calcularPrecio(p, tarifa);
   const specs = leerSpecs(p.specs);
   const agotado = p.stock <= 0;
   const whatsapp = config.whatsapp
@@ -128,7 +130,7 @@ export default async function ProductoPage({ params }: Props) {
 
   // Datos para Google: SIEMPRE el precio público (nunca el de distribuidor del usuario que mira).
   const sitio = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-  const precioPublico = calcularPrecio(p.precioSinIva, { iva: tarifa.iva, esDistribuidor: false, descuento: 0 }).conIva;
+  const precioPublico = calcularPrecio(p.precioSinIva, { iva: tarifa.iva, esDistribuidor: false }).conIva;
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -194,7 +196,7 @@ export default async function ProductoPage({ params }: Props) {
 
           <div className="space-y-3 rounded-xl border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
-              <Precio precioSinIva={Number(p.precioSinIva)} tarifa={tarifa} tamano="lg" />
+              <Precio producto={p} tarifa={tarifa} tamano="lg" />
               <BotonDeseo productId={p.id} inicial={deseos.has(p.id)} className="border" />
             </div>
             <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 border-t pt-3 text-sm">

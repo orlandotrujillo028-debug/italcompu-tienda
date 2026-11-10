@@ -46,6 +46,7 @@ const seleccionTarjeta = {
   nombre: true,
   codigo: true,
   precioSinIva: true,
+  precioDistribuidorSinIva: true,
   stock: true,
   destacado: true,
   nuevo: true,
@@ -62,6 +63,7 @@ export type ProductoTarjeta = {
   nombre: string;
   codigo: string;
   precioSinIva: number;
+  precioDistribuidorSinIva: number;
   stock: number;
   destacado: boolean;
   nuevo: boolean;
@@ -75,6 +77,7 @@ const aTarjeta = (p: FilaTarjeta): ProductoTarjeta => ({
   nombre: p.nombre,
   codigo: p.codigo,
   precioSinIva: Number(p.precioSinIva),
+  precioDistribuidorSinIva: Number(p.precioDistribuidorSinIva),
   stock: p.stock,
   destacado: p.destacado,
   nuevo: p.nuevo,

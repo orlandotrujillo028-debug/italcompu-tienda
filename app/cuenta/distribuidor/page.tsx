@@ -16,7 +16,7 @@ export default async function SolicitarDistribuidorPage() {
   // Solo pueden llenar el formulario quienes no tienen solicitud o fueron rechazados.
   if (estado && estado !== "RECHAZADO") redirect("/cuenta");
 
-  const [{ descuentoDistribuidor }, anterior] = await Promise.all([
+  const [{ descuentoMaximo }, anterior] = await Promise.all([
     getConfigPrecios(),
     estado === "RECHAZADO" ? prisma.distributorProfile.findUnique({ where: { userId: usuario.id } }) : null,
   ]);
@@ -47,7 +47,7 @@ export default async function SolicitarDistribuidorPage() {
           </p>
         )}
       </div>
-      <BeneficiosDistribuidor descuento={descuentoDistribuidor} />
+      <BeneficiosDistribuidor descuento={descuentoMaximo} />
       <div className="rounded-xl border bg-card p-5">
         <SolicitudDistribuidorForm valores={valores} />
       </div>

@@ -130,6 +130,8 @@ model Category {
   orden    Int     @default(0)
   activa   Boolean @default(true)
   parentId String?
+  // Utilidad sobre el costo para el PÚBLICO (%). null = la de la categoría padre o la general (Setting utilidad_publico).
+  utilidadPublico Decimal? @db.Decimal(6, 2)
 
   parent   Category?  @relation("Subcategorias", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("Subcategorias")
@@ -162,6 +164,8 @@ model Product {
   specs         Json? // [{ "clave": "RAM", "valor": "16 GB" }]
   // 4 decimales: así un PVP con IVA importado del inventario (ej. $15,00) vuelve exacto al mostrarse
   precioSinIva  Decimal        @db.Decimal(10, 4)
+  // Precio para distribuidores aprobados, sin IVA (costo + utilidad_distribuidor). Nunca mayor que precioSinIva.
+  precioDistribuidorSinIva Decimal @db.Decimal(10, 4)
   stock         Int            @default(0)
   estado        EstadoProducto @default(PENDIENTE)
   motivoRechazo String?

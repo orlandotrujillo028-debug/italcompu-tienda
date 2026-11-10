@@ -91,7 +91,8 @@ export async function crearPedido(datos: unknown): Promise<Resultado> {
         data: {
           userId: usuario.id,
           metodoPago,
-          descuentoDistribuidor: tarifa.descuento,
+          // % de ahorro total frente al precio público (solo informativo; > 0 marca al pedido como de distribuidor).
+          descuentoDistribuidor: c.porcentajeAhorro,
           subtotal: c.subtotal,
           iva: c.iva,
           envio: c.envio,

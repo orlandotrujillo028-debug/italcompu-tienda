@@ -1,12 +1,12 @@
-import { calcularPrecio, type Tarifa } from "@/lib/precios-calculo";
+import { calcularPrecio, type PreciosProducto, type Tarifa } from "@/lib/precios-calculo";
 import { formatoUSD } from "@/lib/formato";
 
 /**
  * Precio de un producto según la tarifa del usuario.
  * Distribuidor: precio público tachado + su precio con la etiqueta "Precio distribuidor".
  */
-export function Precio({ precioSinIva, tarifa, tamano = "md" }: { precioSinIva: number; tarifa: Tarifa; tamano?: "md" | "lg" }) {
-  const p = calcularPrecio(precioSinIva, tarifa);
+export function Precio({ producto, tarifa, tamano = "md" }: { producto: PreciosProducto; tarifa: Tarifa; tamano?: "md" | "lg" }) {
+  const p = calcularPrecio(producto, tarifa);
   const grande = tamano === "lg" ? "text-3xl" : "text-xl";
 
   return (

@@ -169,6 +169,7 @@ async function main() {
         descripcion: `${nombre}. Producto original con garantía local y factura. Envíos a todo Ecuador.`,
         specs: Object.entries(specs).map(([clave, valor]) => ({ clave, valor })),
         precioSinIva: precio,
+        precioDistribuidorSinIva: Math.round(((precio * 1.25) / 1.35) * 10_000) / 10_000, // costo + 25 % si el público es costo + 35 %
         stock,
         estado: EstadoProducto.PUBLICADO,
         destacado: i % 5 === 0,
@@ -190,6 +191,7 @@ async function main() {
         nombre,
         slug: slugify(nombre),
         precioSinIva: 49 + i * 10,
+        precioDistribuidorSinIva: Math.round((((49 + i * 10) * 1.25) / 1.35) * 10_000) / 10_000,
         stock: 10,
         estado: EstadoProducto.PENDIENTE,
         categoryId: subcategorias.get(i === 0 ? "Periféricos/Mouse" : "Audio/Parlantes")!,

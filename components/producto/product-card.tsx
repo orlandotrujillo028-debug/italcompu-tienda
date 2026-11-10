@@ -60,7 +60,7 @@ export function ProductCard({
         </h3>
         <p className="text-xs text-marca-gris">Código: {producto.codigo}</p>
         <div className="mt-auto space-y-2.5 pt-1">
-          <Precio precioSinIva={producto.precioSinIva} tarifa={tarifa} />
+          <Precio producto={producto} tarifa={tarifa} />
           <BotonComprar productId={producto.id} nombre={producto.nombre} agotado={agotado} />
         </div>
       </div>

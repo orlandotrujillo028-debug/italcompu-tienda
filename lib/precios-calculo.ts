@@ -1,7 +1,7 @@
 // Cálculo puro de precios (sin base de datos ni sesión).
 // Se puede usar en el servidor y también en formularios del navegador (vista previa).
 
-export type Tarifa = { iva: number; esDistribuidor: boolean; descuento: number };
+export type Tarifa = { iva: number; esDistribuidor: boolean };
 
 // Redondeo a centavos "hacia arriba desde 0,5" (14,375 → 14,38).
 // toPrecision corrige errores de coma flotante (14,375 × 100 = 1437,4999…).
@@ -25,14 +25,21 @@ export function descuentoPorUtilidades(utilidadPublico: number, utilidadDistribu
   return (1 - (1 + utilidadDistribuidor / 100) / (1 + utilidadPublico / 100)) * 100;
 }
 
+type Num = number | { toString(): string };
+/** Los dos precios guardados de un producto (sin IVA). */
+export type PreciosProducto = { precioSinIva: Num; precioDistribuidorSinIva?: Num | null };
+
 /**
  * Precio de un producto para una tarifa.
- * El descuento de distribuidor se aplica ANTES del IVA.
+ * - Recibe los dos precios del producto; el distribuidor paga `precioDistribuidorSinIva` (nunca más que el público).
+ * - Si solo se pasa un número, es el precio público (y lo paga cualquiera).
  */
-export function calcularPrecio(precioSinIva: number | { toString(): string }, tarifa: Tarifa) {
-  const base = Number(precioSinIva);
+export function calcularPrecio(producto: Num | PreciosProducto, tarifa: Tarifa) {
+  const p: PreciosProducto = typeof producto === "object" && "precioSinIva" in producto ? producto : { precioSinIva: producto };
+  const base = Number(p.precioSinIva);
   const publicoConIva = redondear(base * (1 + tarifa.iva / 100));
-  const sinIvaExacto = base * (1 - tarifa.descuento / 100);
+  const distribuidor = p.precioDistribuidorSinIva == null ? base : Math.min(base, Number(p.precioDistribuidorSinIva));
+  const sinIvaExacto = tarifa.esDistribuidor ? distribuidor : base;
   const sinIva = redondear(sinIvaExacto);
   // Se calcula desde el valor SIN redondear: un PVP de $15,00 guardado como 13,0435 sin IVA
   // vuelve a dar $15,00 (redondeando primero a 13,04 daría $15,00 pero $0,50 daría $0,49).

@@ -68,7 +68,7 @@ export default async function CuentaInicio() {
         </section>
       )}
 
-      {usuario.rol === "CLIENTE" && <EstadoDistribuidor distribuidor={usuario.distribuidor} descuento={config.descuentoDistribuidor} />}
+      {usuario.rol === "CLIENTE" && <EstadoDistribuidor distribuidor={usuario.distribuidor} descuento={config.descuentoMaximo} />}
 
       <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {accesos.map(({ href, texto, valor, Icono }) => (

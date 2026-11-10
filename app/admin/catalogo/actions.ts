@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { registrarActividad } from "@/lib/actividad";
 import { requireRole } from "@/lib/auth-guards";
+import { recalcularPrecios } from "@/lib/inventario/sincronizar";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 
@@ -34,6 +35,14 @@ const categoriaSchema = z.object({
   icono: z.string().max(40).optional(),
   imagen: z.string().trim().max(300).optional(),
   activa: z.boolean(),
+  // Utilidad para el público (% sobre el costo). Vacío = hereda.
+  utilidad: z
+    .string()
+    .trim()
+    .max(10)
+    .optional()
+    .transform((u) => (u ? Number(u.replace(",", ".")) : null))
+    .refine((u) => u === null || (Number.isFinite(u) && u >= 0 && u <= 500), "Utilidad entre 0 y 500 %"),
 });
 
 /** Crea o edita una categoría o subcategoría. El slug (dirección web) no cambia al renombrar. */
@@ -44,8 +53,12 @@ export async function guardarCategoria(datos: unknown): Promise<R> {
   const d = v.data;
   if (d.imagen && !/^https:\/\/(res\.cloudinary\.com|placehold\.co)\//.test(d.imagen)) return { error: "La imagen debe ser un enlace https de Cloudinary." };
 
-  const campos = { nombre: d.nombre, orden: d.orden, icono: d.icono || null, imagen: d.imagen || null, activa: d.activa };
+  const campos = { nombre: d.nombre, orden: d.orden, icono: d.icono || null, imagen: d.imagen || null, activa: d.activa, utilidadPublico: d.utilidad };
+  let cambiaUtilidad = d.utilidad !== null;
   if (d.id) {
+    const antes = await prisma.category.findUnique({ where: { id: d.id }, select: { utilidadPublico: true } });
+    if (!antes) return { error: "La categoría no existe." };
+    cambiaUtilidad = (antes.utilidadPublico === null ? null : Number(antes.utilidadPublico)) !== d.utilidad;
     await prisma.category.update({ where: { id: d.id }, data: campos });
   } else {
     const padre = d.parentId ? await prisma.category.findFirst({ where: { id: d.parentId, parentId: null }, select: { id: true, slug: true } }) : null;
@@ -53,7 +66,13 @@ export async function guardarCategoria(datos: unknown): Promise<R> {
     const slug = await slugLibre(padre ? `${padre.slug}-${slugify(d.nombre)}` : slugify(d.nombre), "category");
     await prisma.category.create({ data: { ...campos, slug, parentId: padre?.id ?? null } });
   }
-  await registrarActividad(admin.id, d.id ? "categoria.editada" : "categoria.creada", `${d.nombre}${d.activa ? "" : " (oculta)"}`);
+  // Nueva utilidad → se recalculan los precios con el costo del inventario.
+  const recalculados = cambiaUtilidad ? await recalcularPrecios(prisma) : 0;
+  await registrarActividad(
+    admin.id,
+    d.id ? "categoria.editada" : "categoria.creada",
+    `${d.nombre}${d.activa ? "" : " (oculta)"}${cambiaUtilidad ? ` · utilidad ${d.utilidad ?? "heredada"} % · ${recalculados} precios recalculados` : ""}`,
+  );
   refrescar();
   return { ok: true };
 }

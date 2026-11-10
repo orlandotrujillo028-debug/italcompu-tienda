@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { IconoCategoria } from "@/components/tienda/iconos";
 import { eliminarCategoria, eliminarMarca, guardarCategoria, guardarMarca } from "@/app/admin/catalogo/actions";
 
-type Sub = { id: string; nombre: string; orden: number; activa: boolean; productos: number };
+// utilidad: % sobre el costo para el público; null = hereda (de la categoría padre o la general).
+type Sub = { id: string; nombre: string; orden: number; activa: boolean; productos: number; utilidad: number | null };
 type Cat = Sub & { slug: string; icono: string | null; imagen: string | null; children: Sub[] };
 type Marca = { id: string; nombre: string; productos: number };
 
@@ -38,6 +39,7 @@ function FormCategoria({ inicial, parentId, conIcono, alTerminar }: { inicial?: 
     activa: inicial?.activa ?? true,
     icono: (inicial as Cat | undefined)?.icono ?? "",
     imagen: (inicial as Cat | undefined)?.imagen ?? "",
+    utilidad: inicial?.utilidad == null ? "" : String(inicial.utilidad),
   });
   return (
     <form
@@ -49,6 +51,11 @@ function FormCategoria({ inicial, parentId, conIcono, alTerminar }: { inicial?: 
     >
       <input aria-label="Nombre" required value={d.nombre} onChange={(e) => setD({ ...d, nombre: e.target.value })} placeholder="Nombre" className={`${input} min-w-0 flex-1`} />
       <input aria-label="Orden" type="number" min={0} value={d.orden} onChange={(e) => setD({ ...d, orden: e.target.value })} className={`${input} w-16`} title="Orden (menor = primero)" />
+      <label className="flex items-center gap-1 text-sm" title={parentId ? "Vacío = la de su categoría principal" : "Vacío = la utilidad general de Configuración"}>
+        Utilidad
+        <input aria-label="Utilidad para el público (%)" inputMode="decimal" value={d.utilidad} onChange={(e) => setD({ ...d, utilidad: e.target.value })} placeholder={parentId ? "hereda" : "general"} className={`${input} w-20`} />
+        %
+      </label>
       {conIcono && (
         <select aria-label="Icono" value={d.icono} onChange={(e) => setD({ ...d, icono: e.target.value })} className={input}>
           <option value="">Icono</option>
@@ -63,7 +70,16 @@ function FormCategoria({ inicial, parentId, conIcono, alTerminar }: { inicial?: 
   );
 }
 
-export function CategoriasAdmin({ categorias }: { categorias: Cat[] }) {
+/** "Utilidad 85 %" si la categoría tiene la suya; si no, la que hereda en gris. */
+function EtiquetaUtilidad({ valor, general }: { valor: number | null; general: number }) {
+  return valor === null ? (
+    <span className="text-xs text-marca-gris">· utilidad {general} %</span>
+  ) : (
+    <span className="rounded bg-marca-cyan/15 px-1.5 py-0.5 text-xs font-semibold text-marca-navy">utilidad {valor} %</span>
+  );
+}
+
+export function CategoriasAdmin({ categorias, general }: { categorias: Cat[]; general: number }) {
   const { pendiente, ejecutar } = useAccion();
   const [editando, setEditando] = useState<string | null>(null);
   const [nuevaSub, setNuevaSub] = useState<string | null>(null);
@@ -83,6 +99,7 @@ export function CategoriasAdmin({ categorias }: { categorias: Cat[] }) {
                 <span className="font-semibold text-marca-navy">{c.nombre}</span>
                 {!c.activa && <span className="flex items-center gap-1 text-xs text-marca-gris"><EyeOff className="size-3" /> oculta</span>}
                 <span className="text-xs text-marca-gris">· {c.children.length} subcategorías · orden {c.orden}</span>
+                <EtiquetaUtilidad valor={c.utilidad} general={general} />
                 <ChevronDown className={`ml-auto size-4 text-marca-gris transition ${abierta === c.id ? "rotate-180" : ""}`} />
               </button>
               <Button size="sm" variant="ghost" onClick={() => setEditando(c.id)} aria-label={`Editar ${c.nombre}`}><Pencil /></Button>
@@ -97,7 +114,7 @@ export function CategoriasAdmin({ categorias }: { categorias: Cat[] }) {
                     <FormCategoria inicial={s} parentId={c.id} alTerminar={() => setEditando(null)} />
                   ) : (
                     <div className={`flex items-center gap-2 text-sm ${s.activa ? "" : "opacity-60"}`}>
-                      <span className="flex-1">{s.nombre} <span className="text-xs text-marca-gris">· {s.productos} productos · orden {s.orden}{s.activa ? "" : " · oculta"}</span></span>
+                      <span className="flex-1">{s.nombre} <span className="text-xs text-marca-gris">· {s.productos} productos · orden {s.orden}{s.activa ? "" : " · oculta"}</span> <EtiquetaUtilidad valor={s.utilidad} general={c.utilidad ?? general} /></span>
                       <Button size="sm" variant="ghost" onClick={() => setEditando(s.id)} aria-label={`Editar ${s.nombre}`}><Pencil /></Button>
                       <Button size="sm" variant="ghost" className="text-destructive" disabled={pendiente} onClick={() => ejecutar(() => eliminarCategoria(s.id), "Subcategoría eliminada")} aria-label={`Eliminar ${s.nombre}`}><Trash2 /></Button>
                     </div>

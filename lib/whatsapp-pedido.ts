@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { formatoUSD } from "@/lib/formato";
+import { formatoPct, formatoUSD } from "@/lib/formato";
 import { calcularPrecio } from "@/lib/precios-calculo";
 import { METODOS_PAGO_TEXTO, type DireccionPedido } from "@/lib/pedidos-ui";
 
@@ -35,7 +35,7 @@ export async function enlaceWhatsappPedido(numero: number): Promise<string | nul
   const sitio = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
 
   const productos = pedido.items.slice(0, MAX_LINEAS).map((i) => {
-    const unitario = calcularPrecio(i.precioSinIva, { iva, esDistribuidor: false, descuento: 0 }).conIva;
+    const unitario = calcularPrecio(i.precioSinIva, { iva, esDistribuidor: false }).conIva;
     return `• ${i.cantidad} × ${i.nombre} (${i.codigo}) — ${formatoUSD(unitario * i.cantidad)}`;
   });
   if (pedido.items.length > MAX_LINEAS) productos.push(`• …y ${pedido.items.length - MAX_LINEAS} productos más (ver enlace)`);
@@ -49,7 +49,7 @@ export async function enlaceWhatsappPedido(numero: number): Promise<string | nul
     `Hola ITALCOMPU 👋, quiero confirmar mi *pedido #${pedido.numero}*`,
     "",
     `👤 ${pedido.user.name ?? "Cliente"} · ${pedido.user.email}${pedido.user.telefono ? ` · ${pedido.user.telefono}` : ""}${pedido.user.cedula ? ` · CI/RUC ${pedido.user.cedula}` : ""}`,
-    Number(pedido.descuentoDistribuidor) > 0 ? `🏪 Cliente distribuidor (${Number(pedido.descuentoDistribuidor)} % de descuento aplicado)` : null,
+    Number(pedido.descuentoDistribuidor) > 0 ? `🏪 Cliente distribuidor (precios de distribuidor, ${formatoPct(pedido.descuentoDistribuidor)} % de ahorro)` : null,
     "",
     "🛒 *Productos*",
     ...productos,

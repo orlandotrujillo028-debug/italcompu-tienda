@@ -16,13 +16,13 @@ import { formatoPct, formatoUSD } from "@/lib/formato";
 import { calcularPrecio } from "@/lib/precios-calculo";
 import { productoSchema, urlImagenPermitida, type ProductoInput } from "@/lib/validaciones/producto";
 
-type Categoria = { id: string; nombre: string; children: { id: string; nombre: string }[] };
+type Categoria = { id: string; nombre: string; children: { id: string; nombre: string; utilidad: number }[] };
 type Props = {
   id?: string;
   inicial: ProductoInput;
   categorias: Categoria[];
   marcas: { id: string; nombre: string }[];
-  config: { iva: number; descuentoDistribuidor: number };
+  config: { iva: number; utilidadDistribuidor: number };
   esAdmin: boolean;
 };
 
@@ -51,8 +51,11 @@ export function ProductoForm({ id, inicial, categorias, marcas, config, esAdmin 
 
   // Vista previa de precios en vivo.
   const precio = Number(String(watch("precioSinIva") ?? "").replace(",", ".")) || 0;
-  const publico = calcularPrecio(precio, { iva: config.iva, esDistribuidor: false, descuento: 0 });
-  const distribuidor = calcularPrecio(precio, { iva: config.iva, esDistribuidor: true, descuento: config.descuentoDistribuidor });
+  // Distribuidor: se deduce el costo con la utilidad de la subcategoría elegida y se le suma la suya (igual que en el servidor).
+  const utilidad = subcategorias.find((s) => s.id === watch("categoryId"))?.utilidad ?? null;
+  const precioDistribuidorSinIva = utilidad === null ? precio : Math.min(precio, (precio * (1 + config.utilidadDistribuidor / 100)) / (1 + utilidad / 100));
+  const publico = calcularPrecio(precio, { iva: config.iva, esDistribuidor: false });
+  const distribuidor = calcularPrecio({ precioSinIva: precio, precioDistribuidorSinIva }, { iva: config.iva, esDistribuidor: true });
 
   const enviar = (accion: "borrador" | "enviar") =>
     handleSubmit((datos) => {
@@ -169,11 +172,11 @@ export function ProductoForm({ id, inicial, categorias, marcas, config, esAdmin 
         </div>
         <dl className="grid gap-3 rounded-lg bg-marca-fondo p-3 text-sm sm:grid-cols-2" aria-live="polite">
           <div>
-            <dt className="text-marca-gris">Precio público (con IVA {config.iva} %)</dt>
+            <dt className="text-marca-gris">Precio público (con IVA {config.iva} %{utilidad !== null ? `, categoría con ${formatoPct(utilidad)} % de utilidad` : ""})</dt>
             <dd className="text-xl font-bold text-marca-azul">{formatoUSD(publico.conIva)}</dd>
           </div>
           <div>
-            <dt className="text-marca-gris">Precio distribuidor ({formatoPct(config.descuentoDistribuidor)} % menos, con IVA)</dt>
+            <dt className="text-marca-gris">Precio distribuidor (con IVA)</dt>
             <dd className="text-xl font-bold text-marca-navy">{formatoUSD(distribuidor.conIva)}</dd>
           </div>
         </dl>

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Campo } from "@/components/auth/campo";
 import { guardarConfiguracion } from "@/app/admin/configuracion/actions";
 import { formatoUSD } from "@/lib/formato";
-import { calcularPrecio, descuentoPorUtilidades, precioDesdeCosto } from "@/lib/precios-calculo";
+import { calcularPrecio, precioDesdeCosto } from "@/lib/precios-calculo";
 import { configuracionSchema, type ConfiguracionInput } from "@/lib/validaciones/configuracion";
 
 export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) {
@@ -24,13 +24,12 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
   const iva = Number(watch("iva")) || 0;
   const up = Number(watch("utilidad_publico")) || 0;
   const ud = Number(watch("utilidad_distribuidor")) || 0;
-  const base = precioDesdeCosto(100, up);
   const ejemplo = {
-    publico: calcularPrecio(base, { iva, esDistribuidor: false, descuento: 0 }).conIva,
-    distribuidor: calcularPrecio(base, { iva, esDistribuidor: true, descuento: descuentoPorUtilidades(up, ud) }).conIva,
+    publico: calcularPrecio(precioDesdeCosto(100, up), { iva, esDistribuidor: false }).conIva,
+    distribuidor: calcularPrecio(precioDesdeCosto(100, ud), { iva, esDistribuidor: false }).conIva,
   };
   const cambiaIva = Number(watch("iva")) !== Number(valores.iva);
-  const cambiaUtilidad = up !== Number(valores.utilidad_publico);
+  const cambiaUtilidad = up !== Number(valores.utilidad_publico) || ud !== Number(valores.utilidad_distribuidor);
 
   const enviar = handleSubmit((datos) =>
     startTransition(async () => {
@@ -53,7 +52,7 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
             id="utilidad_publico"
             label="Utilidad venta al público (%)"
             inputMode="decimal"
-            ayuda="Se suma al costo del inventario."
+            ayuda="General. Cada categoría puede tener la suya (Admin → Catálogo)."
             error={e.utilidad_publico?.message}
             {...register("utilidad_publico")}
           />
@@ -61,7 +60,7 @@ export function ConfiguracionForm({ valores }: { valores: ConfiguracionInput }) 
             id="utilidad_distribuidor"
             label="Utilidad venta a distribuidor (%)"
             inputMode="decimal"
-            ayuda="También sobre el costo."
+            ayuda="Sobre el costo, igual en todas las categorías."
             error={e.utilidad_distribuidor?.message}
             {...register("utilidad_distribuidor")}
           />
