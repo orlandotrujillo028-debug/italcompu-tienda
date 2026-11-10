@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChartColumn, ChevronRight } from "lucide-react";
 import { SubirInventario } from "@/components/admin/subir-inventario";
+import { Button } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth-guards";
 import { fechaEC, formatoUSD } from "@/lib/formato";
 import { prisma } from "@/lib/prisma";
@@ -31,12 +32,19 @@ export default async function InventarioPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-marca-navy">Inventario de sucursal</h1>
-        <p className="text-sm text-marca-gris">
-          Sube el inventario cada vez que lo exportes del sistema: se compara con el anterior para ver qué llegó, qué se
-          agotó y qué cambió de precio.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-marca-navy">Inventario de sucursal</h1>
+          <p className="text-sm text-marca-gris">
+            Sube el inventario cada vez que lo exportes del sistema: se compara con el anterior para ver qué llegó, qué se
+            agotó y qué cambió de precio.
+          </p>
+        </div>
+        {cargas.length > 0 && (
+          <Button asChild>
+            <Link href="/admin/inventario/reporte"><ChartColumn /> Reporte: reponer, márgenes y capital</Link>
+          </Button>
+        )}
       </div>
 
       <SubirInventario />

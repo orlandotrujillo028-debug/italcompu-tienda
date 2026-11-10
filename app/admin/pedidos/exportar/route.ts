@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getUsuarioActual } from "@/lib/auth-guards";
+import { celdaCsv } from "@/lib/csv";
 import { leerFiltroPedidos } from "@/lib/filtro-pedidos";
 import { ESTADOS_PEDIDO, METODOS_PAGO_TEXTO, type DireccionPedido } from "@/lib/pedidos-ui";
 import { prisma } from "@/lib/prisma";
@@ -26,12 +27,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  // Evita que Excel interprete textos como fórmulas (=, +, -, @) y escapa comillas.
-  const celda = (v: unknown) => {
-    let s = v === null || v === undefined ? "" : String(v);
-    if (/^[=+\-@]/.test(s)) s = `'${s}`;
-    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+  const celda = celdaCsv;
   const dinero = (v: { toString(): string }) => Number(v).toFixed(2).replace(".", ",");
   const fecha = (d: Date) => new Date(d.getTime() - 5 * 3600_000).toISOString().replace("T", " ").slice(0, 16); // hora de Ecuador
 
