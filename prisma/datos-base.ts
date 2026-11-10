@@ -27,7 +27,7 @@ export const CATEGORIAS: { nombre: string; icono: string; subs: string[] }[] = [
   { nombre: "Servidores", icono: "server", subs: ["Torre", "Rack", "Almacenamiento NAS"] },
   { nombre: "Software", icono: "app-window", subs: ["Sistemas operativos", "Ofimática", "Antivirus"] },
   { nombre: "Gaming", icono: "gamepad-2", subs: ["Sillas gamer", "Consolas", "Controles"] },
-  { nombre: "Hogar", icono: "house", subs: ["Cámaras de seguridad", "Domótica", "Pequeños electrodomésticos"] },
+  { nombre: "Hogar", icono: "house", subs: ["Cámaras de seguridad", "Alarmas y control de acceso", "Domótica", "Pequeños electrodomésticos"] },
   // Agregadas para el inventario real de la sucursal (Excel del sistema contable).
   { nombre: "Cables y adaptadores", icono: "cable", subs: ["Cables de video", "Cables USB y datos", "Adaptadores y hubs"] },
   { nombre: "Accesorios", icono: "backpack", subs: ["Mochilas y estuches"] },

@@ -15,11 +15,53 @@ type Regla = [RegExp, string, string | null];
 
 const REGLAS: Regla[] = [
   // Servicios
-  [/^SERVICIO\b/, "Servicio técnico", "Servicios"],
+  [/^(SERVICIO|ARREGLO)\b/, "Servicio técnico", "Servicios"],
+
+  // ── Casos revisados a mano (nov-2026). Van primero porque empiezan con palabras que otras
+  //    reglas mandarían a otro lado (CUCHILLA → herramientas, FLEX/TECLADO/BATERIA → laptop, CAMARA → seguridad…).
+  // Seguridad: alarmas, cerco eléctrico, cerraduras y control de acceso
+  [
+    /CERCOS? ELECTRICOS?|CERRADURA|PROXIMIDAD|\bRFID\b|^SENSOR(ES)? (DE MOVIMIENTO|MAGNETICO)|ALARMA|^TARJETA DE EXPANSORA|VIDEO PORTERO/,
+    "Hogar",
+    "Alarmas y control de acceso",
+  ],
+  [/^(CONECTOR CAMARA PARA FUENTE|CONECTOR HEMBRA Y MACHO PARA CAMARAS|FUENTES? PARA CAMARA|PAR DE VIDEO BALUM)/, "Hogar", "Cámaras de seguridad"],
+  [/^FUENTE DE PODER \d+V \d+A\b|^PROTECTOR DE VOLTAJE\b/, "Energía", null], // adaptadores de corriente, no fuentes de PC
+  // Repuestos de copiadora / impresora
+  [
+    /^(SET DE )?CUCHILLA (DE CILINDRO|DE TRANSFERENCIA|LUBRIC)|^FLEX DE (CARRO|LAMPARA|MOTOR)|^CINTA ENCODER|^ALMOHADILLAS\b|^BANDA FUSORA|^BARRA LUBRICANTE|^CAJA DE MANTENIMIENTO|^KIT (DE )?(CAUCHOS|GOMAS|ESPIRALES|UNETAS|EMPAQUES|PINON)|^(ALIMENTADOR DE PAPEL|CUBIERTA EXTERIOR UNIDAD|GUIA (DUPLEX|SUPERIOR)|LAMPARA DE ESCANER|MANGUERAS? (L\d+|EPSON)|REJILLA (EPSON|PARA BOMBA)|SENSOR (DE )?PAPEL|TELILLA|UNIDAD DE (REVELADO|CILINDRO|RODILLO)|DAMPER)\b/,
+    "Impresión",
+    "Repuestos de impresora",
+  ],
+  [/^(CAJA REGISTRADORA|LECTOR (DE )?CODIGO DE BARRAS?)\b/, "Impresión", "Punto de venta"],
+  [/^FOTOCOPIADORA\b/, "Impresión", "Multifuncionales"],
+  [/^RECARGA\b.*\bGR\b/, "Impresión", "Tintas y tóners"],
+  [/^RESMA\b/, "Impresión", "Papel y suministros"],
+  // Otros
+  [/^(CELULAR|SMARTPHONE)\b/, "Móviles", "Celulares"],
+  [/^TV BOX\b/, "TV y Video", "Streaming"],
+  [/^CAMARA GENIUS FACECAM/, "Periféricos", "Webcams"],
+  [/^TECLADO QUASAD\b/, "Periféricos", "Teclados"],
+  [/^(CARGADOR ENERGIZER|BATERIA 9V)\b/, "Energía", "Baterías y pilas"],
+  [/^(KIT )?VENTILADOR (DELL|HP|LENOVO|ASUS|ACER|TOSHIBA|SAMSUNG|MSI)\b|^PIN DE CARGA\b|^CABLE (HDD|HP \d{2}-)/, "Servicio técnico", "Repuestos de laptop"],
+  [/^CEPILLOS Y BROCHAS/, "Servicio técnico", "Limpieza y mantenimiento"],
+  [/^COMPROBADOR DE CABLE DE RED/, "Servicio técnico", "Herramientas"],
+  [/^CASE\b.*\b(M[.]?2|NVME)\b|^ENCLOSURE\b/, "Almacenamiento", "Cases para disco"],
+  [/^MEMORIA MICRO ?SD\b/, "Almacenamiento", null],
+  [/^TARJETA VIDEO\b/, "Componentes", "Tarjetas de video"],
+  [/^PAD DISIPADOR\b/, "Componentes", "Refrigeración"],
+  [/^ADAPTADOR NANO\b|^TARJETA PCI EXPRESS A RJ45/, "Redes", "Adaptadores de red"],
+  [/^CABLE AMPXL FTP/, "Redes", "Cableado"],
+  [/^CABLEHDMI/, "Cables y adaptadores", "Cables de video"],
+  [/^(UNION USB|CONECTOR PLUG RCA|TARJETA EXTERNA USB DE SONIDO)\b/, "Cables y adaptadores", "Adaptadores y hubs"],
+  [/^AUDIFONO SOPORTE\b/, "Audio", null],
+  [/^SKIN\b/, "Accesorios", null],
+  // ── fin de los casos revisados a mano
+
   // Computadoras
   [/^(NOTEBOOK|LAPTOP)\b.*\b(RTX|GTX|TUF|NITRO|GAMING|ROG|LEGION|OMEN|VICTUS)\b/, "Laptops", "Gaming"],
-  [/^(NOTEBOOK|LAPTOP)\b.*(\b(LATITUDE|THINKPAD|PROBOOK|ELITEBOOK|VOSTRO)\b|\bLT \d)|^NOTEBOOK DELL \d{4}\b/, "Laptops", "Comercial"],
-  [/^(NOTEBOOK|LAPTOP)\b/, "Laptops", "Hogar y estudio"],
+  [/^(NOTEBOOK|LAPTOP)\b.*(\b(LATITUDE|THINKPAD|PROBOOK|ELITEBOOK|VOSTRO)\b|\bLT \d|\bHP 8[4-6]0 G\d)|^NOTEBOOK DELL \d{4}\b/, "Laptops", "Comercial"],
+  [/^(NOTEBOOK|NOTEBOON|LAPTOP)\b/, "Laptops", "Hogar y estudio"],
   [/^(TODO EN UNO|ALL IN ONE)\b|\bAIO\b/, "Computadores", "Todo en uno"],
   [/^(CPU|PC|DESKTOP|DESTOKP|COMPUTADOR)\b/, "Computadores", "Escritorio"],
   [/^MONITOR\b.*\bCURVO\b/, "Monitores", "Curvos"],
