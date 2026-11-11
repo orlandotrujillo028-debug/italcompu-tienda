@@ -43,6 +43,36 @@ export async function alternarActivo(userId: unknown): Promise<R> {
   return { ok: true };
 }
 
+/** Contraseña temporal fácil de dictar por WhatsApp (sin letras que se confunden: 0/O, 1/l/I). Ej. "Ital-7KMQ-482H". */
+function claveTemporal() {
+  const letras = "ABCDEFGHJKMNPQRSTUVWXYZ";
+  const numeros = "23456789";
+  const al = (s: string) => s[crypto.getRandomValues(new Uint32Array(1))[0] % s.length];
+  const bloque = () => al(numeros) + al(letras) + al(letras) + al(numeros);
+  return `Ital-${bloque()}-${bloque()}`;
+}
+
+/**
+ * Restablece la contraseña de un usuario que la olvidó (mientras no hay correos automáticos):
+ * genera una temporal, la devuelve UNA sola vez al admin para que se la pase por WhatsApp y
+ * el usuario la cambia luego en Mi cuenta → Mis datos. No se guarda en ningún registro.
+ */
+export async function restablecerClave(userId: unknown): Promise<{ ok: true; clave: string } | { error: string }> {
+  const admin = await requireRole("ADMIN");
+  const v = id.safeParse(userId);
+  if (!v.success) return { error: "Usuario no válido." };
+  if (v.data === admin.id) return { error: "Tu propia contraseña cámbiala en Mi cuenta." };
+  const u = await prisma.user.findUnique({ where: { id: v.data }, select: { email: true } });
+  if (!u) return { error: "El usuario no existe." };
+
+  const clave = claveTemporal();
+  await prisma.user.update({ where: { id: v.data }, data: { password: await bcrypt.hash(clave, 12) } });
+  // También se libera el bloqueo por intentos fallidos de ese correo.
+  await prisma.limiteIntento.deleteMany({ where: { clave: `login:email:${u.email.toLowerCase()}` } });
+  await registrarActividad(admin.id, "usuario.clave", u.email);
+  return { ok: true, clave };
+}
+
 const personalSchema = z.object({
   nombre: z.string().trim().min(3, "Nombre muy corto").max(80),
   email: z.string().trim().toLowerCase().pipe(z.email("Correo no válido")),

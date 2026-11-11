@@ -75,12 +75,24 @@ npm run crear-admin
 ```
 
 - `db:deploy` crea las tablas.
-- `db:produccion` crea las **16 categorías con sus subcategorías, 16 marcas, la configuración inicial y 3 banners**
+- `db:produccion` crea las **categorías con sus subcategorías (y la utilidad de 85 % en Accesorios, Cables y adaptadores,
+  Periféricos y Servicio técnico), las marcas, la configuración inicial (utilidad 35 % público / 25 % distribuidor) y 3 banners**
   (sin usuarios ni productos de prueba).
 - `crear-admin` te pide correo, nombre y contraseña para **tu cuenta de administrador**.
   Al inicio muestra a qué base se está conectando: **revisa que sea la de producción**.
 
 Cuando termine, **cierra esa terminal** (así las variables de producción no quedan activas).
+
+### 3.1 Cargar el catálogo real
+
+No se copia la base de pruebas (tiene usuarios de prueba con contraseña conocida). En la tienda publicada:
+
+1. Entra como admin → **Inventario** → sube el **último Excel** de la sucursal → revisa la comparación → **Aplicar a la tienda**.
+   Los productos se crean con las mismas reglas de categorías y los precios con las utilidades (costo + %), redondeados.
+2. **Configuración:** WhatsApp, teléfono, correo, horario, dirección, redes y datos bancarios reales.
+3. **Catálogo:** revisa que la utilidad de cada categoría sea la que quieres.
+4. **Inventario → Ocultos:** muestra a mano los que tengas aunque no vengan en el Excel.
+5. Haz tu primer respaldo: `npm run respaldo` con las variables de producción (como arriba).
 
 ---
 
@@ -148,8 +160,9 @@ Cuando termine, **cierra esa terminal** (así las variables de producción no qu
 
 - **Google:** registra tu dominio en <https://search.google.com/search-console> y envía el mapa del sitio:
   `https://italcompu.ec/sitemap.xml`.
-- **Respaldos:** en Neon revisa la sección *Backup & Restore* (el plan gratuito guarda un historial corto;
-  si la tienda crece, conviene un plan pago con más días de restauración).
+- **Respaldos:** `npm run respaldo` (con las variables de producción en la terminal) guarda TODA la tienda en un
+  archivo; hazlo al menos una vez por semana y guárdalo fuera de la PC. Además, en Neon revisa *Backup & Restore*
+  (el plan gratuito guarda un historial corto; si la tienda crece, conviene un plan pago con más días).
 - **Primera visita lenta:** en el plan gratuito Neon “duerme” la base tras unos minutos sin uso; la primera
   visita puede tardar 1–2 segundos más. Es normal.
 

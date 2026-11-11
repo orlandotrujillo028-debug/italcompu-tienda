@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { Prisma, Rol } from "@prisma/client";
 import { BotonAccion } from "@/components/admin/boton-accion";
-import { NuevoPersonal, SelectorRol } from "@/components/admin/usuarios";
+import { BotonRestablecerClave, NuevoPersonal, SelectorRol } from "@/components/admin/usuarios";
 import { alternarActivo } from "./actions";
 import { requireRole } from "@/lib/auth-guards";
 import { fechaEC } from "@/lib/formato";
@@ -92,6 +92,7 @@ export default async function UsuariosPage({ searchParams }: Props) {
                     {yo ? (
                       <span className="text-xs text-emerald-700">Activa</span>
                     ) : (
+                      <div className="flex flex-wrap items-center gap-1">
                       <BotonAccion
                         size="sm"
                         variant={u.activo ? "outline" : "secondary"}
@@ -101,6 +102,8 @@ export default async function UsuariosPage({ searchParams }: Props) {
                       >
                         {u.activo ? "Desactivar" : "Activar"}
                       </BotonAccion>
+                      {u.activo && <BotonRestablecerClave userId={u.id} email={u.email} />}
+                      </div>
                     )}
                   </td>
                 </tr>

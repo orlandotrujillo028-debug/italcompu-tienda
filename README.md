@@ -8,7 +8,9 @@ Contexto completo del proyecto en [CLAUDE.md](CLAUDE.md).
 1. Copia `.env.example` a `.env` y completa `DATABASE_URL`, `DIRECT_URL` y `AUTH_SECRET` (`npx auth secret`).
 2. Instala dependencias: `npm install`
 3. Crea las tablas: `npm run db:migrate`
-4. Carga datos de ejemplo: `npm run db:seed` (⚠️ borra todo y vuelve a crear)
+4. **Solo en una base NUEVA de pruebas:** carga datos de ejemplo con `npm run db:seed`.
+   ⚠️ Hoy la base del `.env` tiene el **catálogo real** (inventario, precios, utilidades): el seed se niega a correr
+   ahí para no borrarlo. Haz respaldos con `npm run respaldo`.
 5. Arranca: `npm run dev` → http://localhost:3000
 
 ## Comandos útiles
@@ -18,7 +20,10 @@ Contexto completo del proyecto en [CLAUDE.md](CLAUDE.md).
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Compilar para producción |
 | `npm run db:migrate` | Aplicar cambios del `prisma/schema.prisma` |
-| `npm run db:seed` | Reiniciar datos de ejemplo (⚠️ BORRA TODO — solo desarrollo) |
+| `npm run db:seed` | Reiniciar datos de ejemplo (⚠️ BORRA TODO — solo en una base de pruebas; se niega si hay datos reales) |
+| `npm run respaldo` | **Respaldo de toda la base** en `respaldos/respaldo-FECHA.json` (no va a git). Hazlo antes de cambios grandes y guárdalo fuera de la PC |
+| `npm run restaurar -- "respaldos/archivo.json"` | Carga un respaldo en una base **vacía** (con migraciones aplicadas). Nunca pisa datos |
+| `npm run inventario:reemplazar -- "ruta.xls"` | ⚠️ Borra el catálogo y carga solo el Excel. Para el día a día usa Admin → Inventario |
 | `npm run db:studio` | Ver y editar la base de datos en el navegador |
 | `npm run db:deploy` | Aplicar migraciones en producción (sin borrar datos) |
 | `npm run db:produccion` | Datos iniciales de la tienda real: categorías, marcas, configuración y banners (no borra nada) |

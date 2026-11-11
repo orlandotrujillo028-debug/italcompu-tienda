@@ -14,6 +14,8 @@
     "db:produccion": "tsx prisma/seed-produccion.ts",
     "crear-admin": "tsx scripts/crear-admin.ts",
     "inventario:reemplazar": "tsx scripts/reemplazar-catalogo.ts",
+    "respaldo": "tsx scripts/respaldo.ts",
+    "restaurar": "tsx scripts/restaurar.ts",
     "vercel-build": "prisma migrate deploy && next build --turbopack",
     "postinstall": "prisma generate"
   },

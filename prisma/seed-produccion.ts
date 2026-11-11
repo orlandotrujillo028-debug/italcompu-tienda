@@ -46,7 +46,7 @@ async function main() {
     const slug = slugify(cat.nombre);
     let padre = await prisma.category.findUnique({ where: { slug } });
     if (!padre) {
-      padre = await prisma.category.create({ data: { nombre: cat.nombre, slug, icono: cat.icono, orden } });
+      padre = await prisma.category.create({ data: { nombre: cat.nombre, slug, icono: cat.icono, orden, utilidadPublico: cat.utilidad ?? null } });
       cats++;
     }
     for (const [subOrden, sub] of cat.subs.entries()) {

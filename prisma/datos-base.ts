@@ -11,12 +11,13 @@ export const slugify = (texto: string) =>
     .replace(/(^-|-$)/g, "");
 
 // Categoría principal → icono lucide + subcategorías
-export const CATEGORIAS: { nombre: string; icono: string; subs: string[] }[] = [
+// utilidad: % sobre el costo para el público propio de la categoría (sin valor = la general de Configuración).
+export const CATEGORIAS: { nombre: string; icono: string; subs: string[]; utilidad?: number }[] = [
   { nombre: "Computadores", icono: "monitor", subs: ["Escritorio", "Todo en uno", "Mini PC", "Workstation"] },
   { nombre: "Laptops", icono: "laptop", subs: ["Gaming", "Comercial", "Hogar y estudio", "Ultradelgadas"] },
   { nombre: "Componentes", icono: "cpu", subs: ["Procesadores", "Memorias RAM", "Tarjetas de video", "Placas madre", "Fuentes de poder", "Cases", "Refrigeración"] },
   { nombre: "Almacenamiento", icono: "hard-drive", subs: ["SSD M.2", "SSD SATA", "Discos duros internos", "Discos externos", "Memorias USB", "Cases para disco"] },
-  { nombre: "Periféricos", icono: "mouse", subs: ["Teclados", "Mouse", "Combos", "Webcams", "Bases para laptops", "Pads de mouse"] },
+  { nombre: "Periféricos", icono: "mouse", utilidad: 85, subs: ["Teclados", "Mouse", "Combos", "Webcams", "Bases para laptops", "Pads de mouse"] },
   { nombre: "Monitores", icono: "monitor-smartphone", subs: ["Gaming", "Oficina", "Curvos", "Profesionales"] },
   { nombre: "Impresión", icono: "printer", subs: ["Láser", "Tinta continua", "Multifuncionales", "Tintas y tóners", "Punto de venta", "Repuestos de impresora", "Papel y suministros"] },
   { nombre: "Móviles", icono: "smartphone", subs: ["Celulares", "Tablets", "Accesorios"] },
@@ -29,9 +30,9 @@ export const CATEGORIAS: { nombre: string; icono: string; subs: string[] }[] = [
   { nombre: "Gaming", icono: "gamepad-2", subs: ["Sillas gamer", "Consolas", "Controles"] },
   { nombre: "Hogar", icono: "house", subs: ["Cámaras de seguridad", "Alarmas y control de acceso", "Domótica", "Pequeños electrodomésticos"] },
   // Agregadas para el inventario real de la sucursal (Excel del sistema contable).
-  { nombre: "Cables y adaptadores", icono: "cable", subs: ["Cables de video", "Cables USB y datos", "Adaptadores y hubs"] },
-  { nombre: "Accesorios", icono: "backpack", subs: ["Mochilas y estuches"] },
-  { nombre: "Servicio técnico", icono: "wrench", subs: ["Herramientas", "Limpieza y mantenimiento", "Repuestos de laptop", "Servicios"] },
+  { nombre: "Cables y adaptadores", icono: "cable", utilidad: 85, subs: ["Cables de video", "Cables USB y datos", "Adaptadores y hubs"] },
+  { nombre: "Accesorios", icono: "backpack", utilidad: 85, subs: ["Mochilas y estuches"] },
+  { nombre: "Servicio técnico", icono: "wrench", utilidad: 85, subs: ["Herramientas", "Limpieza y mantenimiento", "Repuestos de laptop", "Servicios"] },
   { nombre: "Mobiliario", icono: "armchair", subs: [] },
 ];
 

@@ -66,7 +66,7 @@ async function asegurarCategorias(db: PrismaClient) {
     const slug = slugify(cat.nombre);
     let padreId = existentes.get(slug);
     if (!padreId) {
-      padreId = (await db.category.create({ data: { nombre: cat.nombre, slug, icono: cat.icono, orden }, select: { id: true } })).id;
+      padreId = (await db.category.create({ data: { nombre: cat.nombre, slug, icono: cat.icono, orden, utilidadPublico: cat.utilidad ?? null }, select: { id: true } })).id;
       existentes.set(slug, padreId);
     }
     for (const [subOrden, sub] of cat.subs.entries()) {

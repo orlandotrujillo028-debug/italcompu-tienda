@@ -58,7 +58,31 @@ const PRODUCTOS: Ejemplo[] = [
   ["Switch TP-Link TL-SG108 8 puertos Gigabit", "Redes", "Switches", "TP-Link", 25, 25, { Puertos: "8x Gigabit" }],
 ];
 
+/**
+ * Freno de seguridad: el seed BORRA TODO. Si la base tiene datos reales (inventarios subidos, pedidos
+ * o productos que no son de ejemplo ITC-…), se niega a correr. Para forzarlo en una base de PRUEBAS:
+ * crea un respaldo (`npm run respaldo`) y ejecuta con la variable SEED_BORRAR_TODO=si.
+ */
+async function frenoDatosReales() {
+  const [cargas, pedidos, reales] = await Promise.all([
+    prisma.inventarioCarga.count(),
+    prisma.order.count(),
+    prisma.product.count({ where: { NOT: { codigo: { startsWith: "ITC-" } } } }),
+  ]);
+  if (cargas + pedidos + reales === 0) return;
+  const host = (process.env.DATABASE_URL ?? "").match(/@([^/:?]+)/)?.[1] ?? "?";
+  if (process.env.SEED_BORRAR_TODO === "si") {
+    console.log(`⚠️  SEED_BORRAR_TODO=si: se BORRARÁN datos reales de ${host} (${reales} productos, ${pedidos} pedidos, ${cargas} inventarios).`);
+    return;
+  }
+  console.error(`\n❌ La base ${host} tiene datos REALES: ${reales} productos del inventario, ${pedidos} pedidos y ${cargas} inventarios subidos.`);
+  console.error("   El seed borra todo y pone datos de ejemplo, así que NO se ejecutó.");
+  console.error("   Si de verdad es una base de pruebas: npm run respaldo  y luego  SEED_BORRAR_TODO=si npm run db:seed\n");
+  process.exit(1);
+}
+
 async function main() {
+  await frenoDatosReales();
   console.log("Limpiando datos anteriores...");
   await prisma.activityLog.deleteMany();
   await prisma.orderItem.deleteMany();
