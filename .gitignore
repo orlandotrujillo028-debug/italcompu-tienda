@@ -43,3 +43,7 @@ next-env.d.ts
 
 # respaldos de la base (datos personales: nunca a git)
 /respaldos/
+
+CLAUDE.md
+PUBLICAR.md
+.claude/
